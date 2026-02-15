@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "151641947075",
+    "project_id": "travelsphere-7c5d0",
+    "storage_bucket": "travelsphere-7c5d0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151641947075:android:6096767204d780fc309b76",
+        "android_client_info": {
+          "package_name": "com.example.travel_sphere"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151641947075-ev7co21rcbnt358v56t3oun540ab4tnc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.travel_sphere",
+            "certificate_hash": "21db138ff1c964f966cb89dd680719bd69ed2988"
+          }
+        },
+        {
+          "client_id": "151641947075-ck7da70o26i1875d4ig4rpsj7ci7mdta.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN7Kpi7p7rHVU1GKbaOjtLujffJQ1_rRI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151641947075-ck7da70o26i1875d4ig4rpsj7ci7mdta.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
