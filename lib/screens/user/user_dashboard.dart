@@ -3,6 +3,7 @@ import '../../app/theme.dart';
 import '../../services/auth_service.dart';
 import '../../app/routes.dart';
 import 'home/home_screen.dart'; // Import the new Home Screen
+import 'planner/trip_planner_screen.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -15,7 +16,8 @@ class _UserDashboardState extends State<UserDashboard> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    HomeScreen(), // Use the real HomeScreen
+    HomeScreen(), 
+    const TripPlannerScreen(), 
     const MyTripsScreen(),
     const ProfileScreen(),
   ];
@@ -44,6 +46,10 @@ class _UserDashboardState extends State<UserDashboard> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Explore',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.edit_location_alt),
+            label: 'Plan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month),

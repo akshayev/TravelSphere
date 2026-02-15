@@ -6,6 +6,8 @@ class TravelPackage {
   final double rating;
   final String duration;
   final String location;
+  final String description;
+  final List<String> itinerary;
 
   TravelPackage({
     required this.id,
@@ -15,5 +17,7 @@ class TravelPackage {
     required this.rating,
     required this.duration,
     required this.location,
+    required this.description,
+    required this.itinerary,
   });
 }

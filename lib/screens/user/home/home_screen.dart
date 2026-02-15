@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/mock_data.dart';
 import '../../../widgets/common/package_card.dart';
+import '../package_details/package_details_screen.dart'; // Import Package Details
 import '../../../widgets/common/custom_text_field.dart';
 import '../../../app/theme.dart';
 
@@ -131,7 +132,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   return PackageCard(
                     package: package,
                     onTap: () {
-                      // Navigate to details (later)
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PackageDetailsScreen(package: package),
+                        ),
+                      );
                     },
                   );
                 },
