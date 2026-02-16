@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import for exception handling
 import '../../app/routes.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/common/custom_text_field.dart';
@@ -40,7 +41,10 @@ class _LoginScreenState extends State<LoginScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${e.toString()}')),
+            SnackBar(
+              content: Text(_getErrorMessage(e)),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -98,13 +102,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
+                          fontSize: 28,
                         ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Sign in to continue your journey',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
                   ),
                   const SizedBox(height: 48),
 
@@ -216,5 +221,26 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'user-not-found':
+        case 'invalid-email':
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'Invalid email or password.';
+        case 'user-disabled':
+          return 'This account has been disabled.';
+        case 'too-many-requests':
+          return 'Too many attempts. Please try again later.';
+        case 'network-request-failed':
+          return 'Please check your internet connection.'; 
+        default:
+          return 'Login failed: ${error.message}';
+      }
+    }
+    return 'An unexpected error occurred. Please try again.';
   }
 }

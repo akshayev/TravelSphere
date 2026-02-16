@@ -41,10 +41,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created! Please verify your email.')),
+            const SnackBar(content: Text('Account created successfully!')),
           );
-          // Navigate to dashboard or back to login
-          Navigator.pushReplacementNamed(context, Routes.login);
+          // Navigate directly to dashboard
+          Navigator.pushNamedAndRemoveUntil(context, Routes.userDashboard, (route) => false);
         }
       } catch (e) {
         if (mounted) {
