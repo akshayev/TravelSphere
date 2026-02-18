@@ -9,6 +9,10 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
 
+  final Color? fillColor;
+  final Color? textColor;
+  final Color? borderColor;
+
   const CustomTextField({
     super.key,
     required this.label,
@@ -18,6 +22,9 @@ class CustomTextField extends StatelessWidget {
     this.controller,
     this.validator,
     this.keyboardType,
+    this.fillColor,
+    this.textColor,
+    this.borderColor,
   });
 
   @override
@@ -27,23 +34,26 @@ class CustomTextField extends StatelessWidget {
       obscureText: obscureText,
       validator: validator,
       keyboardType: keyboardType,
+      style: TextStyle(color: textColor ?? Colors.black87),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(color: textColor?.withOpacity(0.7) ?? Colors.grey[700]),
         hintText: hint,
-        prefixIcon: Icon(prefixIcon),
+        hintStyle: TextStyle(color: textColor?.withOpacity(0.5) ?? Colors.grey[500]),
+        prefixIcon: Icon(prefixIcon, color: textColor?.withOpacity(0.7) ?? Colors.grey[600]),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: borderColor ?? Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
         ),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: fillColor ?? Colors.grey.shade50,
       ),
     );
   }

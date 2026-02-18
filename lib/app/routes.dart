@@ -4,6 +4,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/user/user_dashboard.dart';
+import '../screens/user/destination/premium_destination_screen.dart';
 
 class Routes {
   static const String splash = '/';
@@ -20,6 +21,7 @@ class Routes {
   static const String managePackages = '/admin/packages';
   static const String managePlaces = '/admin/places';
   static const String managePricing = '/admin/pricing';
+  static const String premiumDestination = '/premium-destination'; // Added route
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -33,6 +35,8 @@ class Routes {
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
       case userDashboard:
         return MaterialPageRoute(builder: (_) => const UserDashboard());
+      case premiumDestination:
+        return MaterialPageRoute(builder: (_) => const PremiumDestinationScreen());
       case adminDashboard:
       case packageDetails:
       case budgetPlanner:

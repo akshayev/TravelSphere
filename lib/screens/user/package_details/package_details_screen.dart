@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../models/package_model.dart';
+import 'package:travelsphere/models/package_model.dart';
 import '../../../app/theme.dart';
 import '../../../widgets/common/custom_button.dart';
+import '../../../widgets/common/glass_container.dart';
 import 'map_view_screen.dart';
 
 class PackageDetailsScreen extends StatelessWidget {
@@ -13,110 +14,158 @@ class PackageDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: DefaultTabController(
-        length: 2,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                expandedHeight: 300.0,
-                pinned: true,
-                leading: IconButton(
-                  icon: const CircleAvatar(
-                    backgroundColor: Colors.white54,
-                    child: Icon(Icons.arrow_back, color: Colors.black),
-                  ),
-                  onPressed: () => Navigator.pop(context),
+      backgroundColor: Colors.black, // Fallback
+      body: Stack(
+        children: [
+          // 1. Fixed Background Image
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: package.imageUrl,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(color: Colors.grey[900]),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
+            ),
+          ),
+
+          // 2. Gradient Overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.1),
+                    Colors.black.withOpacity(0.8),
+                  ],
+                  stops: const [0.0, 0.4, 1.0],
                 ),
-                actions: [
-                  IconButton(
-                    icon: const CircleAvatar(
-                      backgroundColor: Colors.white54,
-                      child: Icon(Icons.favorite_border, color: Colors.black),
-                    ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Added to favorites!')),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: package.imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(color: Colors.grey[300]),
-                        errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+            ),
+          ),
+
+          // 3. Content
+          DefaultTabController(
+            length: 2,
+            child: NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverAppBar(
+                    expandedHeight: 300.0,
+                    pinned: true,
+                    backgroundColor: Colors.transparent, // Transparent to show bg
+                    elevation: 0,
+                    leading: Container(
+                       margin: const EdgeInsets.all(8),
+                       decoration: BoxDecoration(
+                         color: Colors.white.withOpacity(0.2),
+                         shape: BoxShape.circle,
+                       ),
+                       child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      const DecoratedBox(
+                    ),
+                    actions: [
+                      Container(
+                        margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black54],
-                            stops: [0.6, 1.0],
-                          ),
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.favorite_border, color: Colors.white),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Added to favorites!')),
+                            );
+                          },
                         ),
                       ),
+                      const SizedBox(width: 8),
                     ],
-                  ),
-                  title: Text(
-                    package.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        // Transparent to show the fixed background stack
+                      ),
+                      title: Text(
+                        package.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          shadows: [
+                            Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black45),
+                          ]
+                        ),
+                      ),
+                      centerTitle: true,
+                      titlePadding: const EdgeInsets.only(bottom: 60),
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(50),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        child: TabBar(
+                          indicator: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            color: AppTheme.primaryBlue.withOpacity(0.8),
+                          ),
+                          labelColor: Colors.white,
+                          unselectedLabelColor: Colors.white70,
+                          tabs: const [
+                            Tab(text: 'Overview'),
+                            Tab(text: 'Itinerary'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  titlePadding: const EdgeInsets.only(left: 16, bottom: 16 + 48), // Adjust for TabBar
+                ];
+              },
+              body: Container(
+                margin: const EdgeInsets.only(top: 16), // Gap between tabs and content
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3), // Slight darken for content readability
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
-                bottom: const TabBar(
-                  indicatorColor: AppTheme.primaryBlue,
-                  labelColor: Colors.black, // Depending on theme, might need adjustment if AppBar color changes on scroll
-                  unselectedLabelColor: Colors.black54,
-                  // Background color for TabBar to be visible when pinned
-                  labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                  tabs: [
-                    Tab(text: 'Overview'),
-                    Tab(text: 'Itinerary'),
-                  ],
+                child: GlassContainer(
+                  borderRadius: 30, // Match visual
+                  margin: EdgeInsets.zero,
+                  padding: EdgeInsets.zero,
+                  width: double.infinity,
+                  child: TabBarView(
+                    children: [
+                      _buildOverviewTab(context),
+                      _buildItineraryTab(),
+                    ],
+                  ),
                 ),
-                backgroundColor: Colors.white,
-                iconTheme: const IconThemeData(color: Colors.black),
               ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              _buildOverviewTab(context),
-              _buildItineraryTab(),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: const Color.fromRGBO(0, 0, 0, 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
             ),
-          ],
-        ),
-        child: CustomButton(
-          text: 'Book Now - ₹${package.price}',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Booking Flow starts here! 🚀')),
-            );
-          },
+          ),
+        ],
+      ),
+      bottomNavigationBar: GlassContainer(
+        borderRadius: 0,
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.all(16),
+        child: SafeArea(
+          top: false,
+          child: CustomButton(
+            text: 'Book Now - ₹${package.price}',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Booking Flow starts here! 🚀')),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -124,18 +173,26 @@ class PackageDetailsScreen extends StatelessWidget {
 
   Widget _buildOverviewTab(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Quick Stats
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStatBadge(Icons.access_time, package.duration),
-              _buildStatBadge(Icons.location_on, package.location),
-              _buildStatBadge(Icons.star, '${package.rating} Rating'),
-            ],
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildStatBadge(Icons.access_time, package.duration),
+                _buildStatBadge(Icons.location_on, package.location),
+                _buildStatBadge(Icons.star, '${package.rating} Rating'),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -153,9 +210,10 @@ class PackageDetailsScreen extends StatelessWidget {
               icon: const Icon(Icons.map, size: 18),
               label: const Text('View on Map'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primaryBlue,
-                side: const BorderSide(color: AppTheme.primaryBlue),
+                foregroundColor: Colors.white,
+                side: BorderSide(color: Colors.white.withOpacity(0.5)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                backgroundColor: Colors.white.withOpacity(0.05),
               ),
             ),
           ),
@@ -164,21 +222,21 @@ class PackageDetailsScreen extends StatelessWidget {
           // About Section
           const Text(
             'About this trip',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             package.description,
-            style: const TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+            style: TextStyle(fontSize: 16, height: 1.5, color: Colors.white.withOpacity(0.85)),
           ),
           const SizedBox(height: 24),
 
           // What's Included (Mock)
           const Text(
             "What's Included",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _buildInclusionTile(Icons.hotel, 'Comfortable Accommodation'),
           _buildInclusionTile(Icons.restaurant, 'Daily Breakfast & Dinner'),
           _buildInclusionTile(Icons.directions_bus, 'Local Transport'),
@@ -190,29 +248,29 @@ class PackageDetailsScreen extends StatelessWidget {
 
   Widget _buildItineraryTab() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       itemCount: package.itinerary.length,
       itemBuilder: (context, index) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.only(bottom: 24.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
                 children: [
                    Container(
-                     width: 12,
-                     height: 12,
+                     width: 14,
+                     height: 14,
                      decoration: const BoxDecoration(
                        shape: BoxShape.circle,
-                       color: AppTheme.primaryBlue,
+                       color: Colors.cyanAccent, // Bright accent for dark theme
                      ),
                    ),
                    if (index != package.itinerary.length - 1)
                      Container(
                        width: 2,
                        height: 60, // Approximate height connecting lines
-                       color: Colors.grey[300],
+                       color: Colors.white.withOpacity(0.2),
                      ),
                 ],
               ),
@@ -221,9 +279,9 @@ class PackageDetailsScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,14 +289,19 @@ class PackageDetailsScreen extends StatelessWidget {
                       Text(
                         'Day ${index + 1}',
                         style: const TextStyle(
-                          color: AppTheme.primaryBlue,
+                          color: Colors.cyanAccent,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         package.itinerary[index],
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                            fontSize: 16, 
+                            fontWeight: FontWeight.w500, 
+                            color: Colors.white
+                        ),
                       ),
                     ],
                   ),
@@ -252,22 +315,19 @@ class PackageDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildStatBadge(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppTheme.darkGray),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: Colors.white70),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+              fontWeight: FontWeight.w500, 
+              fontSize: 12, 
+              color: Colors.white70
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -276,13 +336,16 @@ class PackageDetailsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: AppTheme.primaryBlue.withAlpha(25), // Updated from withOpacity
-            child: Icon(icon, size: 16, color: AppTheme.primaryBlue),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                shape: BoxShape.circle
+            ),
+            child: Icon(icon, size: 18, color: Colors.white),
           ),
           const SizedBox(width: 12),
-          Text(title, style: const TextStyle(fontSize: 15)),
+          Text(title, style: const TextStyle(fontSize: 15, color: Colors.white)),
         ],
       ),
     );

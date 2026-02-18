@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 class TravelPackage {
   final String id;
   final String name;
@@ -8,6 +10,7 @@ class TravelPackage {
   final String location;
   final String description;
   final List<String> itinerary;
+  final LatLng? locationCoordinates;
 
   TravelPackage({
     required this.id,
@@ -19,5 +22,6 @@ class TravelPackage {
     required this.location,
     required this.description,
     required this.itinerary,
+    this.locationCoordinates,
   });
 }

@@ -1,4 +1,4 @@
-import '../models/package_model.dart';
+import 'package:travelsphere/models/package_model.dart';
 import 'mock_data.dart';
 
 class ItineraryGenerator {
