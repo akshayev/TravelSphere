@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:travelsphere/models/package_model.dart';
-import '../../app/theme.dart';
-import 'dart:ui';
 import 'package:travelsphere/widgets/common/glass_container.dart';
 
 class PackageCard extends StatelessWidget {
@@ -121,7 +119,7 @@ class PackageCard extends StatelessWidget {
                           ),
                         ),
                         const Spacer(),
-                         Text(
+                         const Text(
                           'From ',
                           style: TextStyle(
                             color: Colors.white70,

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travelsphere/models/package_model.dart';
-import '../../../app/theme.dart';
-import '../../../widgets/common/custom_button.dart';
-import '../../../widgets/common/glass_container.dart';
-import 'map_view_screen.dart';
+import 'package:travelsphere/app/theme.dart';
+import 'package:travelsphere/widgets/common/custom_button.dart';
+import 'package:travelsphere/widgets/common/glass_container.dart';
+import 'package:travelsphere/services/user_service.dart';
+import 'package:travelsphere/services/booking_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:travelsphere/screens/user/package_details/map_view_screen.dart';
 
 class PackageDetailsScreen extends StatelessWidget {
   final TravelPackage package;
@@ -68,20 +73,47 @@ class PackageDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     actions: [
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.favorite_border, color: Colors.white),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Added to favorites!')),
-                            );
-                          },
-                        ),
+                      StreamBuilder<DocumentSnapshot>(
+                        stream: UserService().streamUserDoc(),
+                        builder: (context, snapshot) {
+                          bool isSaved = false;
+                          if (snapshot.hasData && snapshot.data!.exists) {
+                            final data = snapshot.data!.data() as Map<String, dynamic>?;
+                            if (data != null) {
+                              final savedIds = List<String>.from(data['saved_package_ids'] ?? []);
+                              isSaved = savedIds.contains(package.id);
+                            }
+                          }
+                          return Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                isSaved ? Icons.favorite : Icons.favorite_border,
+                                color: isSaved ? Colors.redAccent : Colors.white,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  await UserService().toggleSavedTrip(package.id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(isSaved ? 'Removed from My Trips' : 'Saved to My Trips!')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: ${e.toString()}')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          );
+                        }
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -160,11 +192,7 @@ class PackageDetailsScreen extends StatelessWidget {
           top: false,
           child: CustomButton(
             text: 'Book Now - ₹${package.price}',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Booking Flow starts here! 🚀')),
-              );
-            },
+            onPressed: () => _showBookingSheet(context),
           ),
         ),
       ),
@@ -348,6 +376,258 @@ class PackageDetailsScreen extends StatelessWidget {
           Text(title, style: const TextStyle(fontSize: 15, color: Colors.white)),
         ],
       ),
+    );
+  }
+
+  void _showBookingSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        int travelers = 1;
+        DateTime? selectedDate;
+        bool isBooking = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final totalPrice = package.price * travelers;
+
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: GlassContainer(
+                borderRadius: 40,
+                margin: const EdgeInsets.all(0),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Book Your Trip',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      package.name,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Divider(height: 32, color: Colors.white24),
+
+                    // Date Selection
+                    const Text(
+                      'Travel Date',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate ?? now.add(const Duration(days: 7)),
+                          firstDate: now.add(const Duration(days: 1)),
+                          lastDate: now.add(const Duration(days: 365 * 2)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.dark(
+                                  primary: AppTheme.primaryBlue,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.grey[900]!,
+                                  onSurface: Colors.white,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setModalState(() => selectedDate = picked);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today, color: AppTheme.primaryBlue, size: 20),
+                            const SizedBox(width: 12),
+                            Text(
+                              selectedDate == null
+                                  ? 'Select Date'
+                                  : DateFormat('EEE, MMM d, yyyy').format(selectedDate!),
+                              style: TextStyle(
+                                color: selectedDate == null ? Colors.white54 : Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Travelers Selection
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Travelers',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove, color: Colors.white),
+                                onPressed: travelers > 1
+                                    ? () => setModalState(() => travelers--)
+                                    : null,
+                              ),
+                              Text(
+                                '$travelers',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add, color: Colors.white),
+                                onPressed: travelers < 10
+                                    ? () => setModalState(() => travelers++)
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Summary and Checkout
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryBlue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Total Price',
+                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '₹$totalPrice',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            width: 140,
+                            child: CustomButton(
+                              text: 'Confirm',
+                              isLoading: isBooking,
+                              onPressed: selectedDate == null
+                                  ? null
+                                  : () async {
+                                      setModalState(() => isBooking = true);
+                                      try {
+                                        final user = FirebaseAuth.instance.currentUser;
+                                        if (user == null) throw Exception('Please log in to book');
+
+                                        await BookingService().createBooking(
+                                          userId: user.uid,
+                                          packageId: package.id,
+                                          packageName: package.name,
+                                          price: package.price,
+                                          travelDate: selectedDate!,
+                                          travelers: travelers,
+                                        );
+
+                                        if (context.mounted) {
+                                          Navigator.pop(context);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Booking Confirmed! Check "My Trips"'),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        setModalState(() => isBooking = false);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(e.toString()),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

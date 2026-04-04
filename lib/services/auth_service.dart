@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -32,8 +33,11 @@ class AuthService {
       );
 
       // Once signed in, return the UserCredential
-      // Once signed in, return the UserCredential
-      return await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      if (userCredential.user != null) {
+        await UserService().ensureUserDocument(userCredential.user!);
+      }
+      return userCredential;
     } catch (e) {
       if (kDebugMode) {
         print('Error signing in with Google: $e');
@@ -45,10 +49,14 @@ class AuthService {
   // Email/Password Sign In
   Future<UserCredential?> signIn(String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+      if (credential.user != null) {
+        await UserService().ensureUserDocument(credential.user!);
+      }
+      return credential;
     } catch (e) {
       if (kDebugMode) {
         print('Error signing in: $e');
@@ -68,6 +76,8 @@ class AuthService {
       // Update display name
       if (credential.user != null) {
         await credential.user!.updateDisplayName(name);
+        // After potential update, ensure user document creates/updates with name
+        await UserService().ensureUserDocument(credential.user!);
       }
       
       return credential;

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import for exception handling
-import '../../app/routes.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/common/custom_text_field.dart';
-import '../../widgets/common/custom_button.dart';
-import '../../widgets/common/social_button.dart';
-import '../../widgets/common/glass_container.dart';
+import 'package:travelsphere/app/routes.dart';
+import 'package:travelsphere/services/auth_service.dart';
+import 'package:travelsphere/widgets/common/custom_text_field.dart';
+import 'package:travelsphere/widgets/common/custom_button.dart';
+import 'package:travelsphere/widgets/common/social_button.dart';
+import 'package:travelsphere/widgets/common/glass_container.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Logo and Title
-                      Icon(
+                      const Icon(
                         Icons.travel_explore,
                         size: 80,
                         color: Colors.white,
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Sign in to continue your journey',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -213,17 +213,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
 
                       // Divider
-                      Row(
+                      const Row(
                         children: [
-                          const Expanded(child: Divider(color: Colors.white24)),
+                          Expanded(child: Divider(color: Colors.white24)),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               'OR',
                               style: TextStyle(color: Colors.white60),
                             ),
                           ),
-                          const Expanded(child: Divider(color: Colors.white24)),
+                          Expanded(child: Divider(color: Colors.white24)),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             "Don't have an account? ",
                             style: TextStyle(color: Colors.white70),
                           ),

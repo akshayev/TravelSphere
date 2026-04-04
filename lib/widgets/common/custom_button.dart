@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
+  final Color? backgroundColor;
 
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     this.isLoading = false,
+    this.backgroundColor,
   });
 
   @override
@@ -22,7 +24,7 @@ class CustomButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: backgroundColor ?? Theme.of(context).primaryColor,
           foregroundColor: Colors.white,
           elevation: 2,
         ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../app/theme.dart';
-import '../../../widgets/common/custom_button.dart';
-import '../../../widgets/common/glass_container.dart';
+import 'package:travelsphere/app/theme.dart';
+import 'package:travelsphere/widgets/common/custom_button.dart';
+import 'package:travelsphere/widgets/common/glass_container.dart';
 import 'package:travelsphere/services/itinerary_generator.dart';
-import 'generated_itinerary_screen.dart';
+import 'package:travelsphere/screens/user/planner/generated_itinerary_screen.dart';
 
 class TripPlannerScreen extends StatefulWidget {
   const TripPlannerScreen({super.key});
@@ -288,7 +288,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                   // Generate Button
                   CustomButton(
                     text: 'Generate Itinerary ✨',
-                    onPressed: () {
+                    onPressed: () async {
                       if (_selectedDestination == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Please select a destination')),
@@ -302,23 +302,45 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                         return;
                       }
 
-                      // Generate Logic
-                      final results = ItineraryGenerator.generateTrip(
-                        category: _selectedDestination ?? 'Any',
-                        days: _duration.round(),
-                        budget: _budget,
-                        travelers: _travelers,
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return const Center(
+                            child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+                          );
+                        },
                       );
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GeneratedItineraryScreen(
-                            results: results,
-                            totalBudget: _budget,
-                          ),
-                        ),
-                      );
+                      try {
+                        // Generate Logic
+                        final results = await ItineraryGenerator.generateTrip(
+                          category: _selectedDestination ?? 'Any',
+                          days: _duration.round(),
+                          budget: _budget,
+                          travelers: _travelers,
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(context); // close loading
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GeneratedItineraryScreen(
+                                results: results,
+                                totalBudget: _budget,
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                         if (context.mounted) {
+                           Navigator.pop(context);
+                           ScaffoldMessenger.of(context).showSnackBar(
+                             const SnackBar(content: Text('Failed to generate trip: \$e')),
+                           );
+                         }
+                      }
                     },
                   ),
                   const SizedBox(height: 24),
@@ -372,8 +394,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               onPrimary: Colors.black,
               surface: Color(0xFF212121),
               onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: Colors.grey[900],
+            ), dialogTheme: DialogThemeData(backgroundColor: Colors.grey[900]),
           ),
           child: child!,
         );

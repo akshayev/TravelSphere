@@ -1,4 +1,5 @@
 import 'package:latlong2/latlong.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TravelPackage {
   final String id;
@@ -24,4 +25,41 @@ class TravelPackage {
     required this.itinerary,
     this.locationCoordinates,
   });
+
+  factory TravelPackage.fromJson(Map<String, dynamic> json, String id) {
+    LatLng? coordinates;
+    if (json['locationCoordinates'] != null) {
+      final geoPoint = json['locationCoordinates'] as GeoPoint;
+      coordinates = LatLng(geoPoint.latitude, geoPoint.longitude);
+    }
+
+    return TravelPackage(
+      id: id,
+      name: json['name'] as String,
+      imageUrl: json['imageUrl'] as String,
+      price: json['price'] as int,
+      rating: (json['rating'] as num).toDouble(),
+      duration: json['duration'] as String,
+      location: json['location'] as String,
+      description: json['description'] as String,
+      itinerary: List<String>.from(json['itinerary'] ?? []),
+      locationCoordinates: coordinates,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'imageUrl': imageUrl,
+      'price': price,
+      'rating': rating,
+      'duration': duration,
+      'location': location,
+      'description': description,
+      'itinerary': itinerary,
+      if (locationCoordinates != null)
+        'locationCoordinates': GeoPoint(locationCoordinates!.latitude, locationCoordinates!.longitude),
+    };
+  }
 }

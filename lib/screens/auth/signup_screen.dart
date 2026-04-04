@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../app/routes.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/common/custom_text_field.dart';
-import '../../widgets/common/custom_button.dart';
+import 'package:travelsphere/app/routes.dart';
+import 'package:travelsphere/services/auth_service.dart';
+import 'package:travelsphere/widgets/common/custom_text_field.dart';
+import 'package:travelsphere/widgets/common/custom_button.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import '../screens/splash/splash_screen.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/auth/signup_screen.dart';
-import '../screens/auth/forgot_password_screen.dart';
-import '../screens/user/user_dashboard.dart';
-import '../screens/user/destination/premium_destination_screen.dart';
+import 'package:travelsphere/screens/splash/splash_screen.dart';
+import 'package:travelsphere/screens/auth/login_screen.dart';
+import 'package:travelsphere/screens/auth/signup_screen.dart';
+import 'package:travelsphere/screens/auth/forgot_password_screen.dart';
+import 'package:travelsphere/screens/user/user_dashboard.dart';
+import 'package:travelsphere/screens/user/destination/premium_destination_screen.dart';
+import 'package:travelsphere/screens/admin/admin_dashboard_screen.dart';
+import 'package:travelsphere/screens/user/profile/profile_screen.dart';
+import 'package:travelsphere/screens/user/my_trips/my_trips_screen.dart';
 
 class Routes {
   static const String splash = '/';
@@ -21,6 +24,7 @@ class Routes {
   static const String managePackages = '/admin/packages';
   static const String managePlaces = '/admin/places';
   static const String managePricing = '/admin/pricing';
+  static const String admin = '/admin';
   static const String premiumDestination = '/premium-destination'; // Added route
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -37,12 +41,18 @@ class Routes {
         return MaterialPageRoute(builder: (_) => const UserDashboard());
       case premiumDestination:
         return MaterialPageRoute(builder: (_) => const PremiumDestinationScreen());
+      case profile:
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+      case myTrips:
+        return MaterialPageRoute(builder: (_) => const MyTripsScreen());
+      case admin:
       case adminDashboard:
+        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+      
+      // Placeholder routes for Phase 2
       case packageDetails:
       case budgetPlanner:
       case itineraryView:
-      case myTrips:
-      case profile:
       case managePackages:
       case managePlaces:
       case managePricing:

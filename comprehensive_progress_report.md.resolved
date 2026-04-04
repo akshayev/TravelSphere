@@ -1,0 +1,259 @@
+# TravelSphere — Deep Project Analysis Report
+> Generated: 2026-04-02 | Sprint 4 (Profile & Polish) Complete
+
+---
+
+## 1. Project Overview
+
+**TravelSphere** is a full-stack Flutter mobile application targeting Android (and potentially iOS). It connects users to travel packages through a live Firebase backend. The app follows a user-facing consumer model with a planned admin panel (not yet implemented).
+
+**Tech Stack:**
+| Layer | Technology |
+|---|---|
+| Framework | Flutter 3.x (Dart ≥3.10.7) |
+| Backend — Auth | Firebase Authentication (Email/Password + Google) |
+| Backend — Database | Cloud Firestore |
+| Backend — Storage | Firebase Storage |
+| Mapping | flutter_map + latlong2 |
+| State Management | `setState` / `StreamBuilder` (no external provider for most screens) |
+| Caching | cached_network_image |
+| UI Aesthetic | Custom Dark Glassmorphism (GlassContainer widget) |
+
+---
+
+## 2. Project Architecture
+
+```
+lib/
+├── app/
+│   ├── routes.dart          # Named route generator
+│   └── theme.dart           # Design tokens (colors, gradients, radii)
+├── main.dart                # Firebase init, MaterialApp bootstrap
+├── models/
+│   ├── package_model.dart   # TravelPackage (Firestore ↔ LatLng)
+│   └── trip_model.dart      # Stub model (largely unused)
+├── screens/
+│   ├── auth/                # Login, Signup, Forgot Password
+│   ├── splash/              # Animated splash screen
+│   ├── admin/               # EMPTY — admin panel not built
+│   └── user/
+│       ├── user_dashboard.dart       # Bottom navbar shell
+│       ├── home/                     # Explore tab with search
+│       ├── planner/                  # Trip Planner + Generated Itinerary
+│       ├── my_trips/                 # Saved packages
+│       ├── profile/                  # Profile (new, glassmorphic)
+│       ├── package_details/          # Package Detail + Map View
+│       ├── destination/              # Premium destination showcase
+│       ├── budget_planner/           # Exists (status unknown)
+│       └── itinerary/                # Exists (status unknown)
+├── services/
+│   ├── auth_service.dart             # Firebase Auth + Google Sign-In
+│   ├── travel_package_service.dart   # Firestore packages collection
+│   ├── user_service.dart             # User doc management + Storage upload
+│   └── itinerary_generator.dart     # Client-side filtering logic
+└── widgets/
+    └── common/
+        ├── glass_container.dart      # Core glassmorphism widget
+        ├── package_card.dart         # Reusable card for packages
+        ├── custom_button.dart
+        ├── custom_text_field.dart
+        └── social_button.dart
+```
+
+---
+
+## 3. Feature Status Matrix
+
+| Feature | Status | Details |
+|---|---|---|
+| **Splash Screen** | ✅ Complete | Routes to Login |
+| **Email/Password Auth** | ✅ Complete | Sign in, Sign up, Forgot PW |
+| **Google Sign-In** | ✅ Complete | OAuth flow implemented |
+| **User Firestore Doc** | ✅ Complete | `ensureUserDocument()` on every sign-in |
+| **Explore / Home Screen** | ✅ Complete | Live Firestore stream + search + category filter |
+| **Package Details** | ✅ Complete | Glassmorphic detail view with hero images |
+| **Map View** | ✅ Complete | `flutter_map` with live Firestore markers + bottom sheet |
+| **Trip Planner** | ✅ Complete | Form UX with sliders; smart itinerary generation |
+| **Generated Itinerary** | ✅ Complete | Results from ItineraryGenerator |
+| **Save / Favorite Trips** | ✅ Complete | `FieldValue.arrayUnion/arrayRemove` on Firestore |
+| **My Trips Screen** | ✅ Complete | Dual StreamBuilder, cross-referenced saved IDs |
+| **Profile Screen** | ✅ Complete | Glassmorphic UI, real-time `StreamBuilder` |
+| **Profile Picture Upload** | ✅ Complete | `image_picker` → Firebase Storage → Firestore |
+| **Premium Destination** | ✅ Complete | Standalone showcase screen |
+| **Admin Dashboard** | ❌ Not Built | Directory exists but is empty |
+| **Budget Planner Screen** | ⚠️ Unknown | Directory exists — no analysis was done |
+| **Itinerary Screen** | ⚠️ Unknown | Directory exists — content unclear |
+| **Edit Profile (Name)** | ⚠️ Stub | UI option listed but not implemented |
+| **Notifications** | ⚠️ Stub | UI option listed but not implemented |
+| **Share Package** | ⚠️ Dependency exists (`share_plus`) but no UI |
+
+---
+
+## 4. Services Deep Dive
+
+### `AuthService`
+- **Google sign-in** and **email/password** both correctly call `ensureUserDocument()` after auth.
+- `signOut()` correctly signs out both FirebaseAuth and GoogleSignIn.
+- Error handling uses `rethrow` to let the UI display specific messages — clean design.
+
+### `UserService` (Singleton)
+- Uses a singleton pattern (`_internal` factory) — good for consistency.
+- `ensureUserDocument()`: Idempotent — only creates the doc if it doesn't exist. Now includes `photoURL`.
+- `toggleSavedTrip()`: Uses atomic `arrayUnion`/`arrayRemove` — correct and race-condition safe.
+- `streamUserDoc()`: Returns `Stream<DocumentSnapshot>` for real-time UI.
+- `uploadProfileImage()`: Uploads to `profile_pics/{uid}.ext` in Firebase Storage.
+- `updateUserProfile()`: Updates Firestore **and** `FirebaseAuth.currentUser.updateProfile()` — dual sync is correct.
+
+### `TravelPackageService`
+- `getPackagesStream()`: Real-time stream from `packages` Firestore collection.
+- `getAllPackages()`: One-time fetch (used by `ItineraryGenerator`).
+- `getPackageById()`: Fetches a single package by ID — used in details screen.
+
+### `ItineraryGenerator`
+- Pure static logic — filters packages by **budget**, **duration** (±1 day), and **category** keyword.
+- Auto-relaxes constraints by 20% budget + ±2 days if no results found — smart fallback.
+- **Limitation**: Uses raw keyword matching on `description` field; not robust for all category names.
+
+---
+
+## 5. Data Model
+
+### `TravelPackage`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String | Firestore document ID |
+| `name` | String | Package title |
+| `imageUrl` | String | Network image URL |
+| `price` | int | Price per person (₹) |
+| `rating` | double | 0.0–5.0 |
+| `duration` | String | Format: "X Days" |
+| `location` | String | Destination name |
+| `description` | String | Full description |
+| `itinerary` | List\<String\> | Day-by-day plan |
+| `locationCoordinates` | LatLng? | From Firestore `GeoPoint` |
+
+### Firestore `users` Document
+| Field | Type | Notes |
+|---|---|---|
+| `uid` | String | Firebase UID |
+| `email` | String | User email |
+| `displayName` | String | User's name |
+| `photoURL` | String | Firebase Storage URL |
+| `saved_package_ids` | List\<String\> | IDs of favorited packages |
+| `createdAt` | Timestamp | Server timestamp |
+
+---
+
+## 6. Code Health & Static Analysis
+
+> **0 fatal errors** in production code. All errors are in the test files. **121 warnings total** — all non-blocking.
+
+### ❌ Errors (Test Files Only — Does Not Affect App)
+| File | Issue |
+|---|---|
+| `test/itinerary_generator_test.dart` | References deleted `mock_data.dart` — test is broken |
+| `test/itinerary_generator_test.dart` | Incorrect `Future.any()` usage and `for-in` on a Future |
+| `test/trip_planner_test.dart` | Uses undefined `finder.icon()` method |
+
+### ⚠️ Warnings (Production Code)
+| Category | Count | Files Affected |
+|---|---|---|
+| `deprecated_member_use` — `.withOpacity()` | ~60+ | Widespread across all screens |
+| `unused_import` | 5 | `theme.dart`, `auth_service.dart`, `routes.dart`, `package_card.dart`, etc. |
+| `prefer_const_constructors` | ~30 | Minor performance hints, all screens |
+| `unnecessary_import` (`dart:ui`) | 2 | `home_screen.dart`, `package_card.dart` |
+| `deprecated_member_use` — `dialogBackgroundColor` | 1 | `trip_planner_screen.dart` |
+
+### Key Specific Issues
+1. **`user_dashboard.dart`** — `auth_service.dart` and `routes.dart` are imported but no longer used (the `ProfileScreen` was extracted). **Fix: remove these 2 imports.**
+2. **`map_view_screen.dart`** — `latlong2` import is unused (coordinates accessed via model). **Fix: remove import.**
+3. **`home_screen.dart`** — `dart:ui` import is redundant. **Fix: remove import.**
+
+---
+
+## 7. Dependency Audit
+
+```yaml
+# Core
+firebase_core, firebase_auth, cloud_firestore, firebase_storage
+google_sign_in, provider (installed but unused in code)
+
+# UI
+cached_network_image, google_fonts, shimmer (installed but not used in any screen)
+flutter_staggered_animations (installed but not used in any screen)
+glass_kit (installed but NOT used — custom GlassContainer widget is used instead)
+
+# Features
+flutter_map, latlong2, image_picker, geolocator (installed, usage not confirmed)
+share_plus (installed, no UI integration found)
+fl_chart (installed, no usage found)
+hive, hive_flutter (installed, no usage found)
+```
+
+### 🚨 Unused Dependencies (Performance/Size Risk)
+The following packages are in `pubspec.yaml` but appear unused:
+- `provider` — no `ChangeNotifier` or `Provider.of` found
+- `shimmer` — no shimmer loading effects in UI
+- `flutter_staggered_animations` — no staggered animations used
+- `glass_kit` — replaced by custom `GlassContainer`
+- `hive` / `hive_flutter` — no local storage logic found
+- `share_plus` — dependency present, no share button in UI
+- `fl_chart` — no charts rendered anywhere
+- `geolocator` — installed but no live location tracking found
+
+---
+
+## 8. Architecture Observations
+
+### ✅ Strengths
+1. **Clean service layer** — Auth, User, and Package concerns are well-separated.
+2. **Singleton `UserService`** — Consistent user state across all screens without a Provider.
+3. **Real-time by default** — `StreamBuilder` used everywhere for live UI; no manual refresh needed.
+4. **Glassmorphism is consistent** — `GlassContainer` is the correct single source of truth for glass effect.
+5. **Safe Firestore operations** — Atomic `arrayUnion`/`arrayRemove` prevents race conditions on saved trips.
+6. **`context.mounted` checks** — Properly guarded async callbacks throughout to prevent setState-after-dispose errors.
+
+### ⚠️ Weaknesses / Gaps
+1. **No state management layer** — As complexity grows, `setState` + `StreamBuilder` will become hard to maintain. Recommend `Riverpod` or `BLoC` for Sprint 5+.
+2. **Admin panel is 100% empty** — The `admin/` directory is a completely blank slate.
+3. **Routes.dart is partially stale** — Many named routes fall through to "Coming in Phase 2" placeholder.
+4. **Test files are broken** — Both test files have compilation errors and reference deleted files.
+5. **`trip_model.dart` is a stub** — Likely intended for a Firestore `trips` collection that was never implemented.
+6. **Itinerary not persisted** — Generated itineraries are generated on the fly and discarded; they are not saved to Firestore.
+7. **`HomeScreen` backgroundColor** — Set to `Color(0xFFF5F5F5)` (light gray), which breaks the dark glassmorphism aesthetic of the rest of the app.
+
+---
+
+## 9. Sprint Progress Summary
+
+| Sprint | Goal | Status |
+|---|---|---|
+| Sprint 1 | UI Scaffold, Auth Screens, Firestore Migration | ✅ Complete |
+| Sprint 2 | User Persistence, Favorites, My Trips, Cleanup | ✅ Complete |
+| Sprint 3A | Home Screen Search (client-side filtering) | ✅ Complete |
+| Sprint 3B | Map Screen — Live Firestore, Dynamic Markers | ✅ Complete |
+| Sprint 4A | Trip Planner, Itinerary Generator | ✅ Complete |
+| Sprint 4B | Profile Screen, Firebase Storage Uploads | ✅ Complete |
+
+---
+
+## 10. Recommended Next Steps
+
+### Immediate (Bugs & Cleanup)
+- [ ] Remove unused imports in `user_dashboard.dart`, `map_view_screen.dart`, `home_screen.dart`
+- [ ] Fix broken test files (`itinerary_generator_test.dart`, `trip_planner_test.dart`)
+- [ ] Replace `.withOpacity()` with `.withValues(alpha:)` project-wide (run `dart fix --apply`)
+- [ ] Fix `HomeScreen` background color to match dark theme
+
+### Short-Term (Sprint 5)
+- [ ] **Edit Profile Name** — implement the "Edit Profile" menu option in ProfileScreen
+- [ ] **Admin Panel** — build package management (`/admin/packages` route)
+- [ ] **Booking Flow** — add a "Book Now" button on PackageDetails that saves to a Firestore `bookings` collection
+- [ ] **Remove unused dependencies** — `hive`, `shimmer`, `fl_chart`, `glass_kit`, `provider`, `share_plus`, `flutter_staggered_animations`
+
+### Long-Term (Sprint 6+)
+- [ ] **Adopt Riverpod** for scalable state management
+- [ ] **Itinerary Persistence** — save generated trips to Firestore
+- [ ] **Push Notifications** — integrate `firebase_messaging`
+- [ ] **Analytics** — integrate `firebase_analytics`
+- [ ] **iOS Support** — add `NSPhotoLibraryUsageDescription` and test on iOS simulator

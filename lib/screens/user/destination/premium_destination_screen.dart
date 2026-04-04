@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
 import 'package:travelsphere/widgets/common/custom_button.dart';
-import '../../../app/theme.dart';
 
 class PremiumDestinationScreen extends StatelessWidget {
   const PremiumDestinationScreen({super.key});
@@ -70,7 +69,7 @@ class PremiumDestinationScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           'Maldives Paradise',
                           style: TextStyle(
@@ -87,8 +86,8 @@ class PremiumDestinationScreen extends StatelessWidget {
                           color: Colors.amber,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Row(
-                          children: const [
+                        child: const Row(
+                          children: [
                             Icon(Icons.star, size: 16, color: Colors.white),
                             SizedBox(width: 4),
                             Text(
@@ -106,8 +105,8 @@ class PremiumDestinationScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   
                   // Location
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.location_on, color: Colors.white70, size: 16),
                       SizedBox(width: 4),
                       Text(
@@ -140,10 +139,10 @@ class PremiumDestinationScreen extends StatelessWidget {
                   // Price & Button
                   Row(
                     children: [
-                      Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Price',
                             style: TextStyle(color: Colors.white70),
                           ),

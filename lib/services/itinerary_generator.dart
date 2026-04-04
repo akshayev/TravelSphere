@@ -1,5 +1,5 @@
 import 'package:travelsphere/models/package_model.dart';
-import 'mock_data.dart';
+import 'package:travelsphere/services/travel_package_service.dart';
 
 class ItineraryGenerator {
   /// Generates a list of travel packages based on user preferences.
@@ -8,13 +8,14 @@ class ItineraryGenerator {
   /// [days]: The desired duration of the trip in days.
   /// [budget]: The total budget for the trip.
   /// [travelers]: The number of travelers.
-  static List<TravelPackage> generateTrip({
+  static Future<List<TravelPackage>> generateTrip({
     required String category,
     required int days,
     required double budget,
     required int travelers,
-  }) {
-    final allPackages = MockDataService.mockPackages;
+    List<TravelPackage>? availablePackages,
+  }) async {
+    final allPackages = availablePackages ?? await TravelPackageService().getAllPackages();
     
     // exact matches
     List<TravelPackage> matches = allPackages.where((package) {

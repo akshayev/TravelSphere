@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:travelsphere/models/package_model.dart';
-import '../../../widgets/common/package_card.dart';
-import '../../../widgets/common/glass_container.dart';
-import '../../../app/theme.dart';
-import '../package_details/package_details_screen.dart';
+import 'package:travelsphere/widgets/common/package_card.dart';
+import 'package:travelsphere/widgets/common/glass_container.dart';
+import 'package:travelsphere/screens/user/package_details/package_details_screen.dart';
 
 class GeneratedItineraryScreen extends StatelessWidget {
   final List<TravelPackage> results;
@@ -149,16 +148,16 @@ class GeneratedItineraryScreen extends StatelessWidget {
             },
           ),
         ),
-        GlassContainer(
+        const GlassContainer(
           width: double.infinity,
           borderRadius: 0,
           margin: EdgeInsets.zero,
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12),
           child: Row(
             children: [
-              const Icon(Icons.lightbulb, color: Colors.amberAccent, size: 20),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.lightbulb, color: Colors.amberAccent, size: 20),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'Tip: Increasing budget by ₹2000 unlocks 3 more destinations.',
                   style: TextStyle(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic),

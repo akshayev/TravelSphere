@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../services/mock_data.dart';
-import '../../../widgets/common/package_card.dart';
-import '../package_details/package_details_screen.dart'; // Import Package Details
-
-import '../../../app/theme.dart';
-
-import 'dart:ui';
+import 'package:travelsphere/services/travel_package_service.dart';
+import 'package:travelsphere/models/package_model.dart';
+import 'package:travelsphere/widgets/common/package_card.dart';
+import 'package:travelsphere/screens/user/package_details/package_details_screen.dart';
+import 'package:travelsphere/app/theme.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
+  String searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
   final List<String> _categories = ['All', 'Beach', 'Mountain', 'Temple', 'City'];
@@ -30,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppTheme.backgroundDark,
       body: CustomScrollView(
         slivers: [
           // 1. Glass Sliver App Bar
@@ -93,12 +92,12 @@ class _HomeScreenState extends State<HomeScreen> {
               preferredSize: const Size.fromHeight(70),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, const Color(0xFFF5F5F5)],
-                    stops: const [0.0, 0.5], // Fade into body background
+                    colors: [Colors.transparent, AppTheme.backgroundDark],
+                    stops: [0.0, 0.5], // Fade into body background
                   ),
                 ),
                 child: GlassContainer(
@@ -117,6 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                     ),
+                    onChanged: (val) {
+                      setState(() {
+                        searchQuery = val;
+                      });
+                    },
                   ),
                 ),
               ),
@@ -148,20 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppTheme.primaryBlue
-                            : Colors.white,
+                            : Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          if (!isSelected)
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                        ],
                         border: Border.all(
                           color: isSelected
                               ? Colors.transparent
-                              : Colors.grey.shade300,
+                              : Colors.white24,
                         ),
                       ),
                       child: Center(
@@ -170,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             color: isSelected
                                 ? Colors.white
-                                : Colors.grey.shade700,
+                                : Colors.white70,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -194,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.darkGray,
+                      color: Colors.white,
                     ),
                   ),
                   TextButton(
@@ -209,39 +205,91 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           // 4. Packages List
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final package = MockDataService.mockPackages[index];
-                  // Simple category filter
-                  if (_selectedCategory != 'All' &&
-                      !package.name.contains(_selectedCategory) &&
-                      !package.location.contains(_selectedCategory)) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return PackageCard(
-                    package: package,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PackageDetailsScreen(package: package),
-                        ),
-                      );
-                    },
+          SliverToBoxAdapter(
+            child: StreamBuilder<List<TravelPackage>>(
+              stream: TravelPackageService().getPackagesStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+                    ),
                   );
-                },
-                childCount: MockDataService.mockPackages.length,
-              ),
+                }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Text('Error loading packages', style: TextStyle(color: Colors.red)),
+                    ),
+                  );
+                }
+
+                final packages = snapshot.data ?? [];
+                
+                // Client-side filtering
+                final filteredPackages = packages.where((p) {
+                   // Filter by search query
+                   final query = searchQuery.toLowerCase();
+                   final titleMatches = p.name.toLowerCase().contains(query);
+                   final categoryMatches = p.location.toLowerCase().contains(query);
+                   
+                   if (!titleMatches && !categoryMatches) return false;
+
+                   // Filter by selected category (existing logic)
+                   if (_selectedCategory == 'All') return true;
+                   return p.name.contains(_selectedCategory) || p.location.contains(_selectedCategory);
+                }).toList();
+
+                if (filteredPackages.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: GlassContainer(
+                        borderRadius: 16,
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.search_off, size: 50, color: Colors.white.withValues(alpha: 0.6)),
+                            const SizedBox(height: 16),
+                            Text(
+                              "No destinations found matching '$searchQuery'.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: filteredPackages.map((package) {
+                      return PackageCard(
+                        package: package,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PackageDetailsScreen(package: package),
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
             ),
           ),
           
           // Bottom Padding
-          SliverToBoxAdapter(child: const SizedBox(height: 80)),
+          const SliverToBoxAdapter(child: SizedBox(height: 80)),
         ],
       ),
     );
