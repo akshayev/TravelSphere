@@ -10,7 +10,8 @@ class TravelPackage {
   final String duration;
   final String location;
   final String description;
-  final List<String> itinerary;
+  final List<Map<String, String>> itinerary;
+  final List<String> includedItems;
   final LatLng? locationCoordinates;
 
   TravelPackage({
@@ -23,6 +24,7 @@ class TravelPackage {
     required this.location,
     required this.description,
     required this.itinerary,
+    required this.includedItems,
     this.locationCoordinates,
   });
 
@@ -31,6 +33,20 @@ class TravelPackage {
     if (json['locationCoordinates'] != null) {
       final geoPoint = json['locationCoordinates'] as GeoPoint;
       coordinates = LatLng(geoPoint.latitude, geoPoint.longitude);
+    }
+
+    List<Map<String, String>> parsedItinerary = [];
+    if (json['itinerary'] != null) {
+      for (var e in (json['itinerary'] as List)) {
+        if (e is String) {
+          parsedItinerary.add({'title': 'Day', 'description': e});
+        } else if (e is Map) {
+          parsedItinerary.add({
+            'title': e['title']?.toString() ?? '',
+            'description': e['description']?.toString() ?? ''
+          });
+        }
+      }
     }
 
     return TravelPackage(
@@ -42,7 +58,8 @@ class TravelPackage {
       duration: json['duration'] as String,
       location: json['location'] as String,
       description: json['description'] as String,
-      itinerary: List<String>.from(json['itinerary'] ?? []),
+      itinerary: parsedItinerary,
+      includedItems: List<String>.from(json['includedItems'] ?? []),
       locationCoordinates: coordinates,
     );
   }
@@ -58,6 +75,7 @@ class TravelPackage {
       'location': location,
       'description': description,
       'itinerary': itinerary,
+      'includedItems': includedItems,
       if (locationCoordinates != null)
         'locationCoordinates': GeoPoint(locationCoordinates!.latitude, locationCoordinates!.longitude),
     };

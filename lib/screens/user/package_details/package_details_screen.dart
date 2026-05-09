@@ -16,6 +16,18 @@ class PackageDetailsScreen extends StatelessWidget {
 
   const PackageDetailsScreen({super.key, required this.package});
 
+  IconData _getIconForInclusion(String item) {
+    switch (item.toLowerCase()) {
+      case 'flights': return Icons.flight;
+      case 'hotels': return Icons.hotel;
+      case 'transfers': return Icons.directions_bus;
+      case 'meals': return Icons.restaurant;
+      case 'sightseeing': return Icons.camera_alt;
+      case 'visa': return Icons.article;
+      default: return Icons.check_circle_outline;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,7 +187,7 @@ class PackageDetailsScreen extends StatelessWidget {
                   child: TabBarView(
                     children: [
                       _buildOverviewTab(context),
-                      _buildItineraryTab(),
+                      _buildItineraryTab(context),
                     ],
                   ),
                 ),
@@ -259,22 +271,40 @@ class PackageDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // What's Included (Mock)
-          const Text(
-            "What's Included",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          const SizedBox(height: 12),
-          _buildInclusionTile(Icons.hotel, 'Comfortable Accommodation'),
-          _buildInclusionTile(Icons.restaurant, 'Daily Breakfast & Dinner'),
-          _buildInclusionTile(Icons.directions_bus, 'Local Transport'),
-          _buildInclusionTile(Icons.camera_alt, 'Guided Sightseeing'),
+          // What's Included (Dynamic)
+          if (package.includedItems.isNotEmpty) ...[
+            const Text(
+              "What's Included",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 12),
+            ...package.includedItems.map((item) => _buildInclusionTile(_getIconForInclusion(item), item)),
+            const SizedBox(height: 24),
+          ] else ...[
+            // Fallback for older packages
+            const Text(
+              "What's Included",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 12),
+            _buildInclusionTile(Icons.hotel, 'Comfortable Accommodation'),
+            _buildInclusionTile(Icons.restaurant, 'Daily Breakfast & Dinner'),
+            _buildInclusionTile(Icons.directions_bus, 'Local Transport'),
+            _buildInclusionTile(Icons.camera_alt, 'Guided Sightseeing'),
+            const SizedBox(height: 24),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildItineraryTab() {
+  Widget _buildItineraryTab(BuildContext context) {
+    if (package.itinerary.isEmpty) {
+      return const Center(
+        child: Text("Itinerary coming soon", style: TextStyle(color: Colors.white70)),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: package.itinerary.length,
@@ -291,50 +321,152 @@ class PackageDetailsScreen extends StatelessWidget {
                      height: 14,
                      decoration: const BoxDecoration(
                        shape: BoxShape.circle,
-                       color: Colors.cyanAccent, // Bright accent for dark theme
+                       color: Colors.cyanAccent,
                      ),
                    ),
                    if (index != package.itinerary.length - 1)
                      Container(
                        width: 2,
-                       height: 60, // Approximate height connecting lines
+                       height: 60,
                        color: Colors.white.withOpacity(0.2),
                      ),
                 ],
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Day ${index + 1}',
-                        style: const TextStyle(
-                          color: Colors.cyanAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                child: GestureDetector(
+                  onTap: () {
+                    _showItineraryDayDetails(
+                        context,
+                        index + 1,
+                        package.itinerary[index]['title'] ?? '',
+                        package.itinerary[index]['description'] ?? '');
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Day ${index + 1}',
+                              style: const TextStyle(
+                                color: Colors.cyanAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: Colors.white54, size: 20),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        package.itinerary[index],
-                        style: const TextStyle(
-                            fontSize: 16, 
-                            fontWeight: FontWeight.w500, 
-                            color: Colors.white
+                        const SizedBox(height: 6),
+                        Text(
+                          package.itinerary[index]['title'] ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 16, 
+                              fontWeight: FontWeight.w500, 
+                              color: Colors.white
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          package.itinerary[index]['description'] ?? '',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 14, 
+                              color: Colors.white70
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showItineraryDayDetails(BuildContext context, int day, String title, String details) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryBlue.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.today, color: AppTheme.primaryBlue),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    'Day $day',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.cyanAccent,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                details,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 40),
             ],
           ),
         );
