@@ -507,17 +507,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _buildProfileOption(
                         icon: Icons.notifications_none,
                         title: 'Notifications',
-                        onTap: () {},
+                        onTap: () => _showNotificationsDialog(context),
                       ),
                       _buildProfileOption(
                         icon: Icons.security,
                         title: 'Security',
-                        onTap: () {},
+                        onTap: () => _showSecurityDialog(context),
                       ),
                       _buildProfileOption(
                         icon: Icons.help_outline,
                         title: 'Help & Support',
-                        onTap: () {},
+                        onTap: () => _showHelpDialog(context),
                       ),
                       if (role == 'admin')
                         Padding(
@@ -603,6 +603,135 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
+  // ── Notifications Dialog ───────────────────────────────────────────────────
+  void _showNotificationsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: GlassContainer(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Notifications', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Push Notifications', style: TextStyle(color: Colors.white)),
+                    value: true,
+                    activeColor: AppTheme.primaryBlue,
+                    onChanged: (val) {},
+                  ),
+                  SwitchListTile(
+                    title: const Text('Email Alerts', style: TextStyle(color: Colors.white)),
+                    value: false,
+                    activeColor: AppTheme.primaryBlue,
+                    onChanged: (val) {},
+                  ),
+                  SwitchListTile(
+                    title: const Text('Promotional Offers', style: TextStyle(color: Colors.white)),
+                    value: true,
+                    activeColor: AppTheme.primaryBlue,
+                    onChanged: (val) {},
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+                    child: const Text('Done', style: TextStyle(color: Colors.white)),
+                  )
+                ],
+              ),
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  // ── Security Dialog ────────────────────────────────────────────────────────
+  void _showSecurityDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Security Settings', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.password, color: AppTheme.primaryBlue),
+                title: const Text('Change Password', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.verified_user, color: Colors.greenAccent),
+                title: const Text('Two-Factor Auth', style: TextStyle(color: Colors.white)),
+                subtitle: const Text('Enabled', style: TextStyle(color: Colors.white54)),
+                onTap: () {},
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close', style: TextStyle(color: Colors.white70)),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Help & Support Dialog ──────────────────────────────────────────────────
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Help & Support', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.email_outlined, color: AppTheme.primaryBlue),
+                title: const Text('Contact Support', style: TextStyle(color: Colors.white)),
+                subtitle: const Text('support@travelsphere.com', style: TextStyle(color: Colors.white54)),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.help_center_outlined, color: Colors.orangeAccent),
+                title: const Text('FAQs', style: TextStyle(color: Colors.white)),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.article_outlined, color: Colors.cyanAccent),
+                title: const Text('Terms & Conditions', style: TextStyle(color: Colors.white)),
+                onTap: () {},
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close', style: TextStyle(color: Colors.white70)),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
-
-

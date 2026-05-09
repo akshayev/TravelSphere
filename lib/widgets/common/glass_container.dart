@@ -9,6 +9,7 @@ class GlassContainer extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final double borderRadius;
   final Color? borderColor;
+  final bool useBlur;
 
   const GlassContainer({
     super.key,
@@ -19,39 +20,46 @@ class GlassContainer extends StatelessWidget {
     this.margin,
     this.borderRadius = 24.0,
     this.borderColor,
+    this.useBlur = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final innerContainer = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: useBlur 
+            ? Colors.white.withOpacity(0.15) 
+            : const Color(0xFF1A1A2E).withOpacity(0.8), // Darker solid fallback
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: borderColor ?? Colors.white.withOpacity(0.2),
+          width: 1.5,
+        ),
+        gradient: useBlur ? LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.05),
+            Colors.white.withOpacity(0.15),
+          ],
+        ) : null,
+      ),
+      child: child,
+    );
+
     return Container(
       width: width,
       height: height,
       margin: margin,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: borderColor ?? Colors.white.withOpacity(0.2),
-                width: 1.5,
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.05),
-                  Colors.white.withOpacity(0.15),
-                ],
-              ),
-            ),
-            child: child,
-          ),
-        ),
+        child: useBlur 
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: innerContainer,
+              )
+            : innerContainer,
       ),
     );
   }
