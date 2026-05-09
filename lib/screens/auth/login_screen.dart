@@ -82,33 +82,24 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.black, // Fallback
       body: Stack(
         children: [
-          // 1. Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/login_bg.png',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
-          // 2. Overlay
+          // 1. Background Gradient
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A1A2E),
+                    Color(0xFF16213E),
+                    Color(0xFF0F3460),
+                  ],
+                ),
+              ),
             ),
           ),
 
-          // 3. Glass Content
+          // 2. Glass Content
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),

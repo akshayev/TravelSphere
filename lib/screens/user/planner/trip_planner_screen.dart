@@ -102,6 +102,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                   _buildSectionLabel('Where do you want to go?'),
                   const SizedBox(height: 12),
                   GlassContainer(
+                    useBlur: false,
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: DropdownButtonHideUnderline(
@@ -134,6 +135,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                   InkWell(
                     onTap: () => _selectDate(context),
                     child: GlassContainer(
+                      useBlur: false,
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       child: Row(
@@ -157,6 +159,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
                   // 3. Duration
                   GlassContainer(
+                    useBlur: false,
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -204,6 +207,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
                   // 4. Budget
                    GlassContainer(
+                    useBlur: false,
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -253,6 +257,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                   _buildSectionLabel('Who is traveling?'),
                   const SizedBox(height: 12),
                   GlassContainer(
+                     useBlur: false,
                      width: double.infinity,
                      padding: const EdgeInsets.all(12),
                      child: Row(
