@@ -51,3 +51,4 @@ firebase_options.dart
 .env
 graphify-out/
 scratch/
+lib/data/seed_data.dart

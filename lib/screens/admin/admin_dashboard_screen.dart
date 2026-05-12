@@ -6,6 +6,7 @@ import 'package:travelsphere/services/travel_package_service.dart';
 import 'package:travelsphere/services/booking_service.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
 import 'package:travelsphere/screens/admin/package_form_dialog.dart';
+import 'package:travelsphere/data/seed_data.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -75,7 +76,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     );
   }
 
-  // ── 1. Overview Tab ─────────────────────────────────────────────────────────
+// ── 1. Overview Tab ─────────────────────────────────────────────────────────
   Widget _buildOverviewTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -100,49 +101,165 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             ],
           ),
           const SizedBox(height: 16),
-          
-          // Total Revenue Card
-          FutureBuilder<QuerySnapshot>(
-            future: FirebaseFirestore.instance.collection('bookings').where('status', isEqualTo: 'confirmed').get(),
-            builder: (context, snapshot) {
-              int totalRevenue = 0;
-              if (snapshot.hasData) {
-                for (var doc in snapshot.data!.docs) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  totalRevenue += (data['totalPrice'] as num?)?.toInt() ?? 0;
-                }
-              }
-              return GlassContainer(
-                padding: const EdgeInsets.all(20),
-                borderRadius: 16,
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-                      child: const Icon(Icons.attach_money, color: Colors.greenAccent, size: 32),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Total Revenue', style: TextStyle(color: Colors.white70)),
-                        const SizedBox(height: 4),
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                           const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                        else
-                           Text('\$$totalRevenue', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
+          _buildRevenueCard(),
+          const SizedBox(height: 24),
+          const Text('Seed Data', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.dataset_outlined),
+              label: const Text('Seed Demo Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              onPressed: () => _seedDemoData(context),
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildRevenueCard() {
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance.collection('bookings').where('status', isEqualTo: 'confirmed').get(),
+      builder: (context, snapshot) {
+        int totalRevenue = 0;
+        if (snapshot.hasData) {
+          for (var doc in snapshot.data!.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            totalRevenue += (data['totalPrice'] as num?)?.toInt() ?? 0;
+          }
+        }
+        final revenueWidget = snapshot.connectionState == ConnectionState.waiting
+            ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))
+            : Text('\$$totalRevenue', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold));
+        return GlassContainer(
+          padding: const EdgeInsets.all(20),
+          borderRadius: 16,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.attach_money, color: Colors.greenAccent, size: 32),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Total Revenue', style: TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 4),
+                  revenueWidget,
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+Future<void> _seedDemoData(BuildContext context) async {
+  final db = FirebaseFirestore.instance;
+
+  try {
+    // 1. Write categories and collect slug→id map
+    final cats = getSeedCategories();
+    final slugToId = <String, String>{};
+    for (final cat in cats) {
+      final docRef = await db.collection('categories').add({'name': cat['name'], 'slug': cat['slug']});
+      slugToId[cat['slug'] as String] = docRef.id;
+    }
+
+    // 2. Write packages with resolved categoryId
+    final pkgs = getRealisticSeedPackages();
+    for (final pkg in pkgs) {
+      final slug = pkg['categorySlug'] as String;
+      final categoryId = slugToId[slug] ?? slug;
+      final days = pkg['days'] as Map<String, String>;
+      final itinerary = days.entries.map((e) => <String, String>{
+        'title': e.key,
+        'description': e.value,
+      }).toList();
+      await db.collection('packages').add(<String, dynamic>{
+        'name': pkg['name'],
+        'imageUrl': pkg['imageUrl'],
+        'price': pkg['price'],
+        'rating': pkg['rating'],
+        'duration': pkg['duration'],
+        'location': pkg['location'],
+        'description': pkg['desc'],
+        'itinerary': itinerary,
+        'includedItems': pkg['items'],
+        'locationCoordinates': pkg['coord'],
+        'categoryId': categoryId,
+      });
+    }
+
+    // 3. Write bookings with fixed data (no user/package ID needed for demo)
+    final bks = <Map<String, dynamic>>[
+      <String, dynamic>{
+        'userId': 'DvlrsWtuqePqKBJjevNQWbFBz6S2',
+        'userName': 'Akshay EV',
+        'userEmail': 'darkcrineff@gmail.com',
+        'packageName': 'Majestic Taj Mahal & Agra Fort Tour',
+        'packageId': '',
+        'totalPrice': 13000,
+        'travelDate': DateTime.now().add(const Duration(days: 28)).toIso8601String(),
+        'travelers': 2,
+        'status': 'confirmed',
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      <String, dynamic>{
+        'userId': 'DvlrsWtuqePqKBJjevNQWbFBz6S2',
+        'userName': 'Akshay EV',
+        'userEmail': 'darkcrineff@gmail.com',
+        'packageName': 'Goa – Beaches, Culture and Nightlife',
+        'packageId': '',
+        'totalPrice': 8500,
+        'travelDate': DateTime.now().add(const Duration(days: 60)).toIso8601String(),
+        'travelers': 1,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      <String, dynamic>{
+        'userId': 'DvlrsWtuqePqKBJjevNQWbFBz6S2',
+        'userName': 'Akshay EV',
+        'userEmail': 'darkcrineff@gmail.com',
+        'packageName': 'Leh-Ladakh – High Altitude Adventure',
+        'packageId': '',
+        'totalPrice': 66000,
+        'travelDate': DateTime.now().add(const Duration(days: 90)).toIso8601String(),
+        'travelers': 3,
+        'status': 'cancelled',
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+    ];
+    for (final bk in bks) {
+      await db.collection('bookings').add(bk);
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Demo data seeded: ${cats.length} categories, ${pkgs.length} packages, ${bks.length} bookings', style: const TextStyle(color: Colors.white)),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Seed failed: $e', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red.shade700),
+      );
+    }
+  }
+}
 
   Widget _buildStatCard(String title, IconData icon, Future<String?> futureValue) {
     return GlassContainer(

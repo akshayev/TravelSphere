@@ -13,6 +13,7 @@ class TravelPackage {
   final List<Map<String, String>> itinerary;
   final List<String> includedItems;
   final LatLng? locationCoordinates;
+  final String? categoryId;
 
   TravelPackage({
     required this.id,
@@ -26,6 +27,7 @@ class TravelPackage {
     required this.itinerary,
     required this.includedItems,
     this.locationCoordinates,
+    this.categoryId,
   });
 
   factory TravelPackage.fromJson(Map<String, dynamic> json, String id) {
@@ -61,6 +63,7 @@ class TravelPackage {
       itinerary: parsedItinerary,
       includedItems: List<String>.from(json['includedItems'] ?? []),
       locationCoordinates: coordinates,
+      categoryId: json['categoryId'] as String?,
     );
   }
 
@@ -78,6 +81,7 @@ class TravelPackage {
       'includedItems': includedItems,
       if (locationCoordinates != null)
         'locationCoordinates': GeoPoint(locationCoordinates!.latitude, locationCoordinates!.longitude),
+      if (categoryId != null) 'categoryId': categoryId,
     };
   }
 }

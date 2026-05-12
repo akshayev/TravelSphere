@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travelsphere/services/travel_package_service.dart';
 import 'package:travelsphere/models/package_model.dart';
 import 'package:travelsphere/widgets/common/package_card.dart';
@@ -14,11 +16,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _selectedCategory = 'All';
+  String? _selectedCategoryId;
   String searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-
-  final List<String> _categories = ['All', 'Beach', 'Mountain', 'Temple', 'City'];
 
   @override
   void dispose() {
@@ -132,46 +132,59 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               height: 60,
               padding: const EdgeInsets.symmetric(vertical: 10),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isSelected = category == _selectedCategory;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = category;
-                      });
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.primaryBlue
-                            : Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: isSelected
-                              ? Colors.transparent
-                              : Colors.white24,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          category,
-                          style: TextStyle(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('categories').orderBy('name').snapshots(),
+                builder: (context, catSnapshot) {
+                  if (catSnapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox.shrink();
+                  }
+                  final catDocs = catSnapshot.data?.docs ?? [];
+                  final cats = [{'id': null, 'name': 'All'}, ...catDocs.map((d) => {'id': d.id, 'name': (d.data() as Map<String, dynamic>)['name'] as String})];
+
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: cats.length,
+                    itemBuilder: (context, index) {
+                      final cat = cats[index];
+                      final catId = cat['id'] as String?;
+                      final isSelected = _selectedCategoryId == catId;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedCategoryId = catId;
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 8),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? Colors.white
-                                : Colors.white70,
-                            fontWeight: FontWeight.w600,
+                                ? AppTheme.primaryBlue
+                                : Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.transparent
+                                  : Colors.white24,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              cat['name'] as String,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.white70,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),
@@ -228,18 +241,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 final packages = snapshot.data ?? [];
                 
-                // Client-side filtering
+// Client-side filtering
                 final filteredPackages = packages.where((p) {
                    // Filter by search query
                    final query = searchQuery.toLowerCase();
                    final titleMatches = p.name.toLowerCase().contains(query);
                    final categoryMatches = p.location.toLowerCase().contains(query);
-                   
+
                    if (!titleMatches && !categoryMatches) return false;
 
-                   // Filter by selected category (existing logic)
-                   if (_selectedCategory == 'All') return true;
-                   return p.name.contains(_selectedCategory) || p.location.contains(_selectedCategory);
+                   // Filter by selected category
+                   if (_selectedCategoryId == null) return true;
+                   return p.categoryId == _selectedCategoryId;
                 }).toList();
 
                 if (filteredPackages.isEmpty) {
