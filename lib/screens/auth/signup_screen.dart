@@ -175,9 +175,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           hint: 'Enter your full name',
                           prefixIcon: Icons.person_outline,
                           controller: _nameController,
-                          fillColor: Colors.white.withOpacity(0.1),
+                          fillColor: Colors.white.withValues(alpha: 0.1),
                           textColor: Colors.white,
-                          borderColor: Colors.white.withOpacity(0.3),
+                          borderColor: Colors.white.withValues(alpha: 0.3),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your name';
@@ -194,9 +194,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           prefixIcon: Icons.email_outlined,
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          fillColor: Colors.white.withOpacity(0.1),
+                          fillColor: Colors.white.withValues(alpha: 0.1),
                           textColor: Colors.white,
-                          borderColor: Colors.white.withOpacity(0.3),
+                          borderColor: Colors.white.withValues(alpha: 0.3),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
@@ -217,9 +217,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           prefixIcon: Icons.lock_outline,
                           obscureText: true,
                           controller: _passwordController,
-                          fillColor: Colors.white.withOpacity(0.1),
+                          fillColor: Colors.white.withValues(alpha: 0.1),
                           textColor: Colors.white,
-                          borderColor: Colors.white.withOpacity(0.3),
+                          borderColor: Colors.white.withValues(alpha: 0.3),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your password';
@@ -239,9 +239,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           prefixIcon: Icons.lock_outline,
                           obscureText: true,
                           controller: _confirmPasswordController,
-                          fillColor: Colors.white.withOpacity(0.1),
+                          fillColor: Colors.white.withValues(alpha: 0.1),
                           textColor: Colors.white,
-                          borderColor: Colors.white.withOpacity(0.3),
+                          borderColor: Colors.white.withValues(alpha: 0.3),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please confirm your password';

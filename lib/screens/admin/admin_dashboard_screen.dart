@@ -145,7 +145,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                 child: const Icon(Icons.attach_money, color: Colors.greenAccent, size: 32),
               ),
               const SizedBox(width: 16),
@@ -198,6 +198,8 @@ Future<void> _seedDemoData(BuildContext context) async {
         'includedItems': pkg['items'],
         'locationCoordinates': pkg['coord'],
         'categoryId': categoryId,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     }
 
@@ -368,7 +370,7 @@ Future<void> _seedDemoData(BuildContext context) async {
   void _showPackageForm([TravelPackage? package]) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.8),
+      barrierColor: Colors.black.withValues(alpha: 0.8),
       builder: (context) => PackageFormDialog(package: package),
     );
   }
@@ -437,7 +439,7 @@ Future<void> _seedDemoData(BuildContext context) async {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: status == 'confirmed' ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                                color: status == 'confirmed' ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(status.toUpperCase(), style: TextStyle(color: status == 'confirmed' ? Colors.greenAccent : Colors.redAccent, fontSize: 10)),
@@ -501,7 +503,7 @@ Future<void> _seedDemoData(BuildContext context) async {
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryBlue.withOpacity(0.2),
+                    backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.2),
                     child: const Icon(Icons.person, color: AppTheme.primaryBlue),
                   ),
                   title: Text(data['displayName'] ?? 'Unknown User', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -513,7 +515,7 @@ Future<void> _seedDemoData(BuildContext context) async {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.2),
+                            color: Colors.amber.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text('ADMIN', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travelsphere/services/travel_package_service.dart';
@@ -53,9 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.3),
+                          Colors.black.withValues(alpha: 0.3),
                           Colors.transparent,
-                          Colors.black.withOpacity(0.6),
+                          Colors.black.withValues(alpha: 0.6),
                         ],
                       ),
                     ),
@@ -69,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           'Discover',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                           ),
@@ -77,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           'Your Next Adventure',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 18,
                             fontWeight: FontWeight.normal,
                           ),
@@ -108,13 +107,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Search destinations...',
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
                       prefixIcon: const Icon(Icons.search, color: Colors.white),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 15),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.1),
+                      fillColor: Colors.white.withValues(alpha: 0.1),
                     ),
                     onChanged: (val) {
                       setState(() {
@@ -147,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: cats.length,
                     itemBuilder: (context, index) {
                       final cat = cats[index];
-                      final catId = cat['id'] as String?;
+                      final catId = cat['id'];
                       final isSelected = _selectedCategoryId == catId;
 
                       return GestureDetector(
@@ -163,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppTheme.primaryBlue
-                                : Colors.white.withOpacity(0.1),
+                                : Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
                               color: isSelected

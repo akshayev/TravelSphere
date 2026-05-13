@@ -143,9 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefixIcon: Icons.email_outlined,
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        fillColor: Colors.white.withOpacity(0.1),
+                        fillColor: Colors.white.withValues(alpha: 0.1),
                         textColor: Colors.white,
-                        borderColor: Colors.white.withOpacity(0.3),
+                        borderColor: Colors.white.withValues(alpha: 0.3),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
@@ -166,9 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefixIcon: Icons.lock_outline,
                         obscureText: true,
                         controller: _passwordController,
-                        fillColor: Colors.white.withOpacity(0.1),
+                        fillColor: Colors.white.withValues(alpha: 0.1),
                         textColor: Colors.white,
-                        borderColor: Colors.white.withOpacity(0.3),
+                        borderColor: Colors.white.withValues(alpha: 0.3),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';

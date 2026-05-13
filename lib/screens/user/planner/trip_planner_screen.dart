@@ -65,9 +65,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.black.withOpacity(0.2),
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.2),
+                    Colors.black.withValues(alpha: 0.8),
                   ],
                 ),
               ),
@@ -94,7 +94,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'We will generate a personalized itinerary for you.',
-                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16),
                   ),
                   const SizedBox(height: 32),
 
@@ -108,7 +108,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedDestination,
-                        hint: Text('Select Destination', style: TextStyle(color: Colors.white.withOpacity(0.6))),
+                        hint: Text('Select Destination', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
                         isExpanded: true,
                         dropdownColor: Colors.grey[900], // Dark dropdown background
                         icon: const Icon(Icons.keyboard_arrow_down, color: Colors.cyanAccent),
@@ -146,7 +146,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                                 ? 'Select Start Date'
                                 : DateFormat('EEE, d MMM yyyy').format(_startDate!),
                             style: TextStyle(
-                              color: _startDate == null ? Colors.white.withOpacity(0.6) : Colors.white,
+                              color: _startDate == null ? Colors.white.withValues(alpha: 0.6) : Colors.white,
                               fontSize: 16,
                             ),
                           ),
@@ -182,9 +182,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             activeTrackColor: Colors.cyanAccent,
-                            inactiveTrackColor: Colors.white.withOpacity(0.2),
+                            inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                             thumbColor: Colors.white,
-                            overlayColor: Colors.cyanAccent.withOpacity(0.2),
+                            overlayColor: Colors.cyanAccent.withValues(alpha: 0.2),
                             trackHeight: 4.0,
                           ),
                           child: Slider(
@@ -230,9 +230,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             activeTrackColor: Colors.cyanAccent,
-                            inactiveTrackColor: Colors.white.withOpacity(0.2),
+                            inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                             thumbColor: Colors.white,
-                            overlayColor: Colors.cyanAccent.withOpacity(0.2),
+                            overlayColor: Colors.cyanAccent.withValues(alpha: 0.2),
                             trackHeight: 4.0,
                           ),
                           child: Slider(
@@ -372,9 +372,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   Widget _buildIconButton(IconData icon, VoidCallback onPressed) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: IconButton(
         icon: Icon(icon, size: 20, color: Colors.white),

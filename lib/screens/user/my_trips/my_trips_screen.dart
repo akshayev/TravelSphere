@@ -167,8 +167,8 @@ class _MyTripsScreenState extends State<MyTripsScreen> with SingleTickerProvider
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: isUpcoming
-                        ? Colors.cyanAccent.withOpacity(0.15)
-                        : Colors.grey.withOpacity(0.15),
+                        ? Colors.cyanAccent.withValues(alpha: 0.15)
+                        : Colors.grey.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -195,8 +195,8 @@ class _MyTripsScreenState extends State<MyTripsScreen> with SingleTickerProvider
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: status == 'confirmed'
-                              ? Colors.greenAccent.withOpacity(0.15)
-                              : Colors.orangeAccent.withOpacity(0.15),
+                              ? Colors.greenAccent.withValues(alpha: 0.15)
+                              : Colors.orangeAccent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -246,7 +246,7 @@ class _MyTripsScreenState extends State<MyTripsScreen> with SingleTickerProvider
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Colors.redAccent.withOpacity(0.3)),
+                      side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.3)),
                     ),
                   ),
                 ),
@@ -379,13 +379,13 @@ class _MyTripsScreenState extends State<MyTripsScreen> with SingleTickerProvider
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 80, color: Colors.white.withOpacity(0.15)),
+          Icon(icon, size: 80, color: Colors.white.withValues(alpha: 0.15)),
           const SizedBox(height: 16),
-          Text(title, style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.w600)),
+          Text(title, style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.7), fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(subtitle, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.4))),
+            child: Text(subtitle, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.4))),
           ),
         ],
       ),

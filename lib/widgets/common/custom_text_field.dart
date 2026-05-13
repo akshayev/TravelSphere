@@ -37,10 +37,10 @@ class CustomTextField extends StatelessWidget {
       style: TextStyle(color: textColor ?? Colors.black87),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: textColor?.withOpacity(0.7) ?? Colors.grey[700]),
+        labelStyle: TextStyle(color: textColor?.withValues(alpha: 0.7) ?? Colors.grey[700]),
         hintText: hint,
-        hintStyle: TextStyle(color: textColor?.withOpacity(0.5) ?? Colors.grey[500]),
-        prefixIcon: Icon(prefixIcon, color: textColor?.withOpacity(0.7) ?? Colors.grey[600]),
+        hintStyle: TextStyle(color: textColor?.withValues(alpha: 0.5) ?? Colors.grey[500]),
+        prefixIcon: Icon(prefixIcon, color: textColor?.withValues(alpha: 0.7) ?? Colors.grey[600]),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),

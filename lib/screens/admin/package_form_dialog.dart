@@ -30,11 +30,10 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
 
   String? _imageUrl;
   File? _selectedImageFile;
-  bool _isUploadingImage = false;
 
   LatLng? _selectedCoordinates;
 
-  List<Map<String, TextEditingController>> _itineraryControllers = [];
+  final List<Map<String, TextEditingController>> _itineraryControllers = [];
 
   final List<String> _availableInclusions = [
     'Flights', 'Hotels', 'Transfers', 'Meals', 'Sightseeing', 'Visa',
@@ -219,7 +218,7 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
                             height: 150,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
+                              color: Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white24),
                               image: _selectedImageFile != null
@@ -272,7 +271,7 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
                             selected: isSelected,
                             selectedColor: Colors.cyanAccent,
                             checkmarkColor: Colors.black,
-                            backgroundColor: Colors.white.withOpacity(0.1),
+                            backgroundColor: Colors.white.withValues(alpha: 0.1),
                             onSelected: (bool selected) {
                               setState(() {
                                 if (selected) {
@@ -402,7 +401,7 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
           labelStyle: const TextStyle(color: Colors.white60),
           prefixIcon: Icon(icon, color: AppTheme.primaryBlue, size: 20),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
+          fillColor: Colors.white.withValues(alpha: 0.05),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),

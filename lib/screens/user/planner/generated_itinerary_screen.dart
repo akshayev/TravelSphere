@@ -46,9 +46,9 @@ class GeneratedItineraryScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.black.withOpacity(0.2),
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.2),
+                    Colors.black.withValues(alpha: 0.8),
                   ],
                 ),
               ),
@@ -86,7 +86,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
               Text(
                 'Try increasing your budget or changing the destination.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
               ),
               const SizedBox(height: 24),
               ElevatedButton(

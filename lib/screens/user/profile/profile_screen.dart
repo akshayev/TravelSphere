@@ -524,8 +524,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           padding: const EdgeInsets.only(bottom: 16.0),
                           child: GestureDetector(
                             onTap: () => Navigator.pushNamed(context, '/admin'),
-                            child: GlassContainer(
-                              child: const ListTile(
+                            child: const GlassContainer(
+                              child: ListTile(
                                 leading: Icon(Icons.admin_panel_settings,
                                     color: Colors.white),
                                 title: Text('Admin Dashboard',
@@ -608,7 +608,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showNotificationsDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
           return Dialog(
@@ -623,19 +623,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SwitchListTile(
                     title: const Text('Push Notifications', style: TextStyle(color: Colors.white)),
                     value: true,
-                    activeColor: AppTheme.primaryBlue,
+                    activeThumbColor: AppTheme.primaryBlue,
                     onChanged: (val) {},
                   ),
                   SwitchListTile(
                     title: const Text('Email Alerts', style: TextStyle(color: Colors.white)),
                     value: false,
-                    activeColor: AppTheme.primaryBlue,
+                    activeThumbColor: AppTheme.primaryBlue,
                     onChanged: (val) {},
                   ),
                   SwitchListTile(
                     title: const Text('Promotional Offers', style: TextStyle(color: Colors.white)),
                     value: true,
-                    activeColor: AppTheme.primaryBlue,
+                    activeThumbColor: AppTheme.primaryBlue,
                     onChanged: (val) {},
                   ),
                   const SizedBox(height: 16),
@@ -657,7 +657,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showSecurityDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
         child: GlassContainer(
@@ -697,7 +697,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showHelpDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
         child: GlassContainer(

@@ -16,6 +16,8 @@ class PackageDetailsScreen extends StatelessWidget {
 
   const PackageDetailsScreen({super.key, required this.package});
 
+  String get _heroTag => 'package-hero-${package.id}';
+
   IconData _getIconForInclusion(String item) {
     switch (item.toLowerCase()) {
       case 'flights': return Icons.flight;
@@ -36,11 +38,14 @@ class PackageDetailsScreen extends StatelessWidget {
         children: [
           // 1. Fixed Background Image
           Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: package.imageUrl,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(color: Colors.grey[900]),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+            child: Hero(
+              tag: _heroTag,
+              child: CachedNetworkImage(
+                imageUrl: package.imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(color: Colors.grey[900]),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
             ),
           ),
 
@@ -52,9 +57,9 @@ class PackageDetailsScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.3),
-                    Colors.black.withOpacity(0.1),
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withValues(alpha: 0.3),
+                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(alpha: 0.8),
                   ],
                   stops: const [0.0, 0.4, 1.0],
                 ),
@@ -76,7 +81,7 @@ class PackageDetailsScreen extends StatelessWidget {
                     leading: Container(
                        margin: const EdgeInsets.all(8),
                        decoration: BoxDecoration(
-                         color: Colors.white.withOpacity(0.2),
+                         color: Colors.white.withValues(alpha: 0.2),
                          shape: BoxShape.circle,
                        ),
                        child: IconButton(
@@ -99,7 +104,7 @@ class PackageDetailsScreen extends StatelessWidget {
                           return Container(
                             margin: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
@@ -152,14 +157,14 @@ class PackageDetailsScreen extends StatelessWidget {
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(25),
-                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                         ),
                         child: TabBar(
                           indicator: BoxDecoration(
                             borderRadius: BorderRadius.circular(25),
-                            color: AppTheme.primaryBlue.withOpacity(0.8),
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.8),
                           ),
                           labelColor: Colors.white,
                           unselectedLabelColor: Colors.white70,
@@ -176,7 +181,7 @@ class PackageDetailsScreen extends StatelessWidget {
               body: Container(
                 margin: const EdgeInsets.only(top: 16), // Gap between tabs and content
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3), // Slight darken for content readability
+                  color: Colors.black.withValues(alpha: 0.3), // Slight darken for content readability
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
                 child: GlassContainer(
@@ -221,9 +226,9 @@ class PackageDetailsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -251,9 +256,9 @@ class PackageDetailsScreen extends StatelessWidget {
               label: const Text('View on Map'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
-                side: BorderSide(color: Colors.white.withOpacity(0.5)),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                backgroundColor: Colors.white.withOpacity(0.05),
+                backgroundColor: Colors.white.withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -267,7 +272,7 @@ class PackageDetailsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             package.description,
-            style: TextStyle(fontSize: 16, height: 1.5, color: Colors.white.withOpacity(0.85)),
+            style: TextStyle(fontSize: 16, height: 1.5, color: Colors.white.withValues(alpha: 0.85)),
           ),
           const SizedBox(height: 24),
 
@@ -328,7 +333,7 @@ class PackageDetailsScreen extends StatelessWidget {
                      Container(
                        width: 2,
                        height: 60,
-                       color: Colors.white.withOpacity(0.2),
+                       color: Colors.white.withValues(alpha: 0.2),
                      ),
                 ],
               ),
@@ -345,9 +350,9 @@ class PackageDetailsScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,7 +415,7 @@ class PackageDetailsScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -421,7 +426,7 @@ class PackageDetailsScreen extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -432,7 +437,7 @@ class PackageDetailsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.2),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.today, color: AppTheme.primaryBlue),
@@ -499,7 +504,7 @@ class PackageDetailsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle
             ),
             child: Icon(icon, size: 18, color: Colors.white),
@@ -542,7 +547,7 @@ class PackageDetailsScreen extends StatelessWidget {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -560,7 +565,7 @@ class PackageDetailsScreen extends StatelessWidget {
                     Text(
                       package.name,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 16,
                       ),
                     ),
@@ -605,9 +610,9 @@ class PackageDetailsScreen extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                         ),
                         child: Row(
                           children: [
@@ -642,9 +647,9 @@ class PackageDetailsScreen extends StatelessWidget {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                           ),
                           child: Row(
                             children: [
@@ -679,9 +684,9 @@ class PackageDetailsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBlue.withOpacity(0.1),
+                        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.2)),
+                        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

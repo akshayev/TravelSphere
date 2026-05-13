@@ -9,6 +9,8 @@
 //   'description':
 // in lib/data/seed_data.dart
 
+import 'dart:io';
+
 void main() {
   final file = File('lib/data/seed_data.dart');
   var content = file.readAsStringSync();
@@ -17,7 +19,6 @@ void main() {
   content = content.replaceAll("'description:", "'description':");
 
   file.writeAsStringSync(content);
+  // ignore: avoid_print
   print('Fixed all description fields');
 }
-
-import 'dart:io';

@@ -14,6 +14,8 @@ class TravelPackage {
   final List<String> includedItems;
   final LatLng? locationCoordinates;
   final String? categoryId;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   TravelPackage({
     required this.id,
@@ -28,6 +30,8 @@ class TravelPackage {
     required this.includedItems,
     this.locationCoordinates,
     this.categoryId,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory TravelPackage.fromJson(Map<String, dynamic> json, String id) {
@@ -35,6 +39,19 @@ class TravelPackage {
     if (json['locationCoordinates'] != null) {
       final geoPoint = json['locationCoordinates'] as GeoPoint;
       coordinates = LatLng(geoPoint.latitude, geoPoint.longitude);
+    }
+
+    DateTime? parseTimestamp(dynamic value) {
+      if (value == null) {
+        return null;
+      }
+      if (value is Timestamp) {
+        return value.toDate();
+      }
+      if (value is DateTime) {
+        return value;
+      }
+      return null;
     }
 
     List<Map<String, String>> parsedItinerary = [];
@@ -64,6 +81,8 @@ class TravelPackage {
       includedItems: List<String>.from(json['includedItems'] ?? []),
       locationCoordinates: coordinates,
       categoryId: json['categoryId'] as String?,
+      createdAt: parseTimestamp(json['createdAt']),
+      updatedAt: parseTimestamp(json['updatedAt']),
     );
   }
 
@@ -82,6 +101,8 @@ class TravelPackage {
       if (locationCoordinates != null)
         'locationCoordinates': GeoPoint(locationCoordinates!.latitude, locationCoordinates!.longitude),
       if (categoryId != null) 'categoryId': categoryId,
+      if (createdAt != null) 'createdAt': Timestamp.fromDate(createdAt!),
+      if (updatedAt != null) 'updatedAt': Timestamp.fromDate(updatedAt!),
     };
   }
 }

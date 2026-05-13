@@ -114,7 +114,7 @@ class _AdminMapPickerScreenState extends State<AdminMapPickerScreen> {
               child: Row(
                 children: [
                   Container(
-                    decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.pop(context),

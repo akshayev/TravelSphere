@@ -6,11 +6,26 @@ class TravelPackageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collectionPath = 'packages';
 
+  int _packageSortScore(TravelPackage package) {
+    final timestamp = package.updatedAt ?? package.createdAt;
+    return timestamp?.millisecondsSinceEpoch ?? 0;
+  }
+
   Stream<List<TravelPackage>> getPackagesStream() {
     return _firestore.collection(_collectionPath).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
+      final packages = snapshot.docs.map((doc) {
         return TravelPackage.fromJson(doc.data(), doc.id);
       }).toList();
+
+      packages.sort((a, b) {
+        final scoreDiff = _packageSortScore(b).compareTo(_packageSortScore(a));
+        if (scoreDiff != 0) {
+          return scoreDiff;
+        }
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+
+      return packages;
     });
   }
 
@@ -44,7 +59,10 @@ class TravelPackageService {
   /// Add a new travel package to Firestore
   Future<void> addPackage(TravelPackage package) async {
     try {
-      await _firestore.collection(_collectionPath).add(package.toJson());
+      final payload = package.toJson();
+      payload['createdAt'] = FieldValue.serverTimestamp();
+      payload['updatedAt'] = FieldValue.serverTimestamp();
+      await _firestore.collection(_collectionPath).add(payload);
     } catch (e) {
       if (kDebugMode) {
         print('Error adding package: $e');
@@ -56,7 +74,9 @@ class TravelPackageService {
   /// Update an existing travel package in Firestore
   Future<void> updatePackage(TravelPackage package) async {
     try {
-      await _firestore.collection(_collectionPath).doc(package.id).update(package.toJson());
+      final payload = package.toJson();
+      payload['updatedAt'] = FieldValue.serverTimestamp();
+      await _firestore.collection(_collectionPath).doc(package.id).update(payload);
     } catch (e) {
       if (kDebugMode) {
         print('Error updating package: $e');

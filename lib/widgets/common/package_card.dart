@@ -23,7 +23,7 @@ class PackageCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -55,8 +55,8 @@ class PackageCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.8),
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.8),
                       ],
                       stops: const [0.5, 0.7, 1.0],
                     ),
@@ -111,14 +111,18 @@ class PackageCard extends StatelessWidget {
                         const Icon(Icons.location_on,
                             size: 14, color: Colors.white70),
                         const SizedBox(width: 4),
-                        Text(
-                          package.location,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
+                        Expanded(
+                          child: Text(
+                            package.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                          const Text(
                           'From ',
                           style: TextStyle(
@@ -126,12 +130,18 @@ class PackageCard extends StatelessWidget {
                             fontSize: 12,
                           ),
                         ),
-                        Text(
-                          '₹${package.price}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.cyanAccent,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '₹${package.price}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.cyanAccent,
+                              ),
+                            ),
                           ),
                         ),
                       ],
