@@ -7,6 +7,7 @@ import 'package:travelsphere/services/travel_package_service.dart';
 import 'package:travelsphere/widgets/common/package_card.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
 import 'package:travelsphere/app/theme.dart';
+import 'package:travelsphere/screens/user/package_details/package_details_screen.dart';
 
 class MyTripsScreen extends StatefulWidget {
   const MyTripsScreen({super.key});
@@ -363,7 +364,17 @@ class _MyTripsScreenState extends State<MyTripsScreen> with SingleTickerProvider
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
-                  child: PackageCard(package: myPackages[index]),
+                  child: PackageCard(
+                    package: myPackages[index],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PackageDetailsScreen(package: myPackages[index]),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             );

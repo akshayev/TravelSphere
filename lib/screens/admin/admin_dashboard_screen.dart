@@ -165,10 +165,46 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   }
 
 Future<void> _seedDemoData(BuildContext context) async {
+  // Confirmation dialog
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: const Color(0xFF1E1E1E),
+      title: const Text('Reset & Seed Data', style: TextStyle(color: Colors.white)),
+      content: const Text(
+        'This will DELETE all existing packages, categories, and bookings, then seed 30 fresh India-based packages.\n\nThis cannot be undone.',
+        style: TextStyle(color: Colors.white70),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Reset & Seed', style: TextStyle(color: Colors.redAccent)),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
   final db = FirebaseFirestore.instance;
 
   try {
-    // 1. Write categories and collect slug→id map
+    // Show progress
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Clearing old data...'), duration: Duration(seconds: 2)),
+    );
+
+    // ── Delete all existing docs ──
+    for (final col in ['packages', 'categories', 'bookings']) {
+      final snap = await db.collection(col).get();
+      final batch = db.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+
+    // ── Seed categories ──
     final cats = getSeedCategories();
     final slugToId = <String, String>{};
     for (final cat in cats) {
@@ -176,7 +212,7 @@ Future<void> _seedDemoData(BuildContext context) async {
       slugToId[cat['slug'] as String] = docRef.id;
     }
 
-    // 2. Write packages with resolved categoryId
+    // ── Seed packages ──
     final pkgs = getRealisticSeedPackages();
     for (final pkg in pkgs) {
       final slug = pkg['categorySlug'] as String;
@@ -203,53 +239,10 @@ Future<void> _seedDemoData(BuildContext context) async {
       });
     }
 
-    // 3. Write bookings with fixed data (no user/package ID needed for demo)
-    final bks = <Map<String, dynamic>>[
-      <String, dynamic>{
-        'userId': 'DvlrsWtuqePqKBJjevNQWbFBz6S2',
-        'userName': 'Akshay EV',
-        'userEmail': 'darkcrineff@gmail.com',
-        'packageName': 'Majestic Taj Mahal & Agra Fort Tour',
-        'packageId': '',
-        'totalPrice': 13000,
-        'travelDate': DateTime.now().add(const Duration(days: 28)).toIso8601String(),
-        'travelers': 2,
-        'status': 'confirmed',
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      <String, dynamic>{
-        'userId': 'DvlrsWtuqePqKBJjevNQWbFBz6S2',
-        'userName': 'Akshay EV',
-        'userEmail': 'darkcrineff@gmail.com',
-        'packageName': 'Goa – Beaches, Culture and Nightlife',
-        'packageId': '',
-        'totalPrice': 8500,
-        'travelDate': DateTime.now().add(const Duration(days: 60)).toIso8601String(),
-        'travelers': 1,
-        'status': 'pending',
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      <String, dynamic>{
-        'userId': 'DvlrsWtuqePqKBJjevNQWbFBz6S2',
-        'userName': 'Akshay EV',
-        'userEmail': 'darkcrineff@gmail.com',
-        'packageName': 'Leh-Ladakh – High Altitude Adventure',
-        'packageId': '',
-        'totalPrice': 66000,
-        'travelDate': DateTime.now().add(const Duration(days: 90)).toIso8601String(),
-        'travelers': 3,
-        'status': 'cancelled',
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-    ];
-    for (final bk in bks) {
-      await db.collection('bookings').add(bk);
-    }
-
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Demo data seeded: ${cats.length} categories, ${pkgs.length} packages, ${bks.length} bookings', style: const TextStyle(color: Colors.white)),
+          content: Text('Seeded: ${cats.length} categories, ${pkgs.length} packages'),
           backgroundColor: Colors.green.shade700,
         ),
       );
@@ -257,7 +250,7 @@ Future<void> _seedDemoData(BuildContext context) async {
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Seed failed: $e', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red.shade700),
+        SnackBar(content: Text('Seed failed: $e'), backgroundColor: Colors.red.shade700),
       );
     }
   }

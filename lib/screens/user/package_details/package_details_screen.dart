@@ -185,6 +185,7 @@ class PackageDetailsScreen extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
                 child: GlassContainer(
+                  useBlur: false,
                   borderRadius: 30, // Match visual
                   margin: EdgeInsets.zero,
                   padding: EdgeInsets.zero,

@@ -26,54 +26,74 @@ class UserService {
       final docRef = _usersRef.doc(user.uid);
       final docSnap = await docRef.get();
 
+      final payload = <String, dynamic>{
+        'uid': user.uid,
+        'email': user.email ?? '',
+        'displayName': user.displayName ?? '',
+        'photoURL': user.photoURL ?? '',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
       if (!docSnap.exists) {
-        await docRef.set({
-          'uid': user.uid,
-          'email': user.email ?? '',
-          'displayName': user.displayName ?? '',
-          'photoURL': user.photoURL ?? '',
-          'role': 'user',
-          'saved_package_ids': [],
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        payload['role'] = 'user';
+        payload['saved_package_ids'] = [];
+        payload['createdAt'] = FieldValue.serverTimestamp();
+      } else {
+        final data = docSnap.data() as Map<String, dynamic>? ?? {};
+        if (data['role'] == null) {
+          payload['role'] = 'user';
+        }
+        if (data['saved_package_ids'] == null) {
+          payload['saved_package_ids'] = [];
+        }
       }
+
+      await docRef.set(payload, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) {
         print('Error ensuring user document: $e');
       }
+      rethrow;
     }
   }
 
   /// Toggle saving a package for the current user
-  Future<void> toggleSavedTrip(String packageId) async {
+  Future<bool> toggleSavedTrip(String packageId) async {
     final uid = currentUserId;
     if (uid == null) throw Exception('User not logged in');
+    if (packageId.trim().isEmpty) throw Exception('Invalid package id');
 
     try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not logged in');
+
       final docRef = _usersRef.doc(uid);
-      final docSnap = await docRef.get();
+      await ensureUserDocument(user);
 
-      if (!docSnap.exists) {
-        // Fallback: create doc if it somehow doesn't exist
-        await ensureUserDocument(_auth.currentUser!);
-      }
+      return _firestore.runTransaction<bool>((transaction) async {
+        final docSnap = await transaction.get(docRef);
+        final data = docSnap.data() as Map<String, dynamic>? ?? {};
+        final savedIds = List<String>.from(data['saved_package_ids'] ?? []);
+        final isAlreadySaved = savedIds.contains(packageId);
 
-      final data = docSnap.data() as Map<String, dynamic>? ?? {};
-      final savedIds = List<String>.from(data['saved_package_ids'] ?? []);
+        transaction.set(
+          docRef,
+          {
+            'saved_package_ids': isAlreadySaved
+                ? FieldValue.arrayRemove([packageId])
+                : FieldValue.arrayUnion([packageId]),
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
 
-      if (savedIds.contains(packageId)) {
-        await docRef.update({
-          'saved_package_ids': FieldValue.arrayRemove([packageId])
-        });
-      } else {
-        await docRef.update({
-          'saved_package_ids': FieldValue.arrayUnion([packageId])
-        });
-      }
+        return !isAlreadySaved;
+      });
     } catch (e) {
       if (kDebugMode) {
         print('Error toggling saved trip: $e');
       }
+      rethrow;
     }
   }
 
@@ -120,7 +140,8 @@ class UserService {
       if (photoUrl != null) updates['photoURL'] = photoUrl;
 
       if (updates.isNotEmpty) {
-        await _usersRef.doc(uid).update(updates);
+        updates['updatedAt'] = FieldValue.serverTimestamp();
+        await _usersRef.doc(uid).set(updates, SetOptions(merge: true));
       }
       
       // Update FirebaseAuth as well
@@ -144,9 +165,10 @@ class UserService {
       await user.updateProfile(displayName: newName);
 
       // 2. Update Firestore Document
-      await _usersRef.doc(user.uid).update({
+      await _usersRef.doc(user.uid).set({
         'displayName': newName,
-      });
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
       // Reload to reflect changes across the app
       await user.reload();
@@ -157,4 +179,69 @@ class UserService {
       rethrow;
     }
   }
+
+  /// Update extra profile fields (bio, phoneNumber, birthYear) in Firestore
+  Future<void> updateProfileFields({
+    String? displayName,
+    String? phoneNumber,
+    String? bio,
+    int? birthYear,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    final updates = <String, dynamic>{};
+    if (displayName != null && displayName.trim().isNotEmpty) {
+      updates['displayName'] = displayName.trim();
+    }
+    if (phoneNumber != null) updates['phoneNumber'] = phoneNumber.trim();
+    if (bio != null) updates['bio'] = bio.trim();
+    if (birthYear != null) updates['birthYear'] = birthYear;
+
+    if (updates.isEmpty) return;
+
+    try {
+      updates['updatedAt'] = FieldValue.serverTimestamp();
+      await _usersRef.doc(user.uid).set(updates, SetOptions(merge: true));
+
+      // Keep Firebase Auth displayName in sync
+      if (displayName != null && displayName.trim().isNotEmpty) {
+        await user.updateProfile(displayName: displayName.trim());
+        await user.reload();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating profile fields: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Persist notification preference toggles to Firestore
+  Future<void> updateNotificationPrefs({
+    bool? push,
+    bool? email,
+    bool? promo,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    final updates = <String, dynamic>{};
+    if (push != null) updates['notifPush'] = push;
+    if (email != null) updates['notifEmail'] = email;
+    if (promo != null) updates['notifPromo'] = promo;
+
+    if (updates.isEmpty) return;
+
+    try {
+      updates['updatedAt'] = FieldValue.serverTimestamp();
+      await _usersRef.doc(uid).set(updates, SetOptions(merge: true));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating notification prefs: $e');
+      }
+      rethrow;
+    }
+  }
 }
+

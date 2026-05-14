@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travelsphere/app/theme.dart';
 import 'package:travelsphere/models/package_model.dart';
 import 'package:travelsphere/services/travel_package_service.dart';
@@ -41,6 +42,9 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
   ];
   List<String> _selectedInclusions = [];
 
+  String? _selectedCategoryId;
+  List<Map<String, dynamic>> _categories = [];
+
   bool _isSaving = false;
 
   @override
@@ -69,6 +73,22 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
           'description': TextEditingController(text: day['description']),
         });
       }
+    }
+
+    _selectedCategoryId = widget.package?.categoryId;
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final snap = await FirebaseFirestore.instance.collection('categories').get();
+      if (mounted) {
+        setState(() {
+          _categories = snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
     }
   }
 
@@ -155,6 +175,7 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
         itinerary: itinerary,
         includedItems: _selectedInclusions,
         locationCoordinates: _selectedCoordinates,
+        categoryId: _selectedCategoryId,
       );
 
       if (widget.package == null) {
@@ -259,6 +280,35 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
                       ),
                       const SizedBox(height: 16),
 
+                      // Category Dropdown
+                      const Text('Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategoryId,
+                        dropdownColor: const Color(0xFF1E1E1E),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.category, color: AppTheme.primaryBlue, size: 20),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        items: _categories.map((cat) {
+                          return DropdownMenuItem<String>(
+                            value: cat['id'] as String,
+                            child: Text(cat['name'] ?? 'Unknown'),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedCategoryId = val;
+                          });
+                        },
+                        hint: const Text('Select Category', style: TextStyle(color: Colors.white54)),
+                      ),
+                      const SizedBox(height: 16),
+
                       // What's Included
                       const Text("What's Included", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 8),
@@ -271,7 +321,11 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
                             selected: isSelected,
                             selectedColor: Colors.cyanAccent,
                             checkmarkColor: Colors.black,
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            backgroundColor: Colors.black45,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(color: isSelected ? Colors.cyanAccent : Colors.white24),
+                            ),
                             onSelected: (bool selected) {
                               setState(() {
                                 if (selected) {

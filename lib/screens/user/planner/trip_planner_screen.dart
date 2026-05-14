@@ -19,16 +19,26 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   String? _selectedDestination;
   DateTime? _startDate;
   double _duration = 3;
-  double _budget = 5000;
+  double _budget = 10000;
   int _travelers = 2;
 
   final List<String> _destinations = [
-    'Goa',
-    'Kerala',
-    'Himachal Pradesh',
+    'Any',
     'Rajasthan',
+    'Kerala',
+    'Goa',
+    'Ladakh',
+    'Himachal Pradesh',
+    'Uttarakhand',
+    'Karnataka',
     'Andaman',
-    'Other'
+    'Uttar Pradesh',
+    'Maharashtra',
+    'Assam',
+    'Bihar',
+    'Punjab',
+    'Telangana',
+    'West Bengal',
   ];
 
   @override
@@ -238,8 +248,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                           child: Slider(
                             value: _budget,
                             min: 1000,
-                            max: 50000,
-                            divisions: 49,
+                            max: 100000,
+                            divisions: 99,
                             label: '₹${_budget.round()}',
                             onChanged: (value) {
                               setState(() {

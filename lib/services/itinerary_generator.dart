@@ -3,11 +3,11 @@ import 'package:travelsphere/services/travel_package_service.dart';
 
 class ItineraryGenerator {
   /// Generates a list of travel packages based on user preferences.
-  /// 
-  /// [category]: The selected destination category (e.g., "Beach", "Mountain", "Any").
-  /// [days]: The desired duration of the trip in days.
-  /// [budget]: The total budget for the trip.
-  /// [travelers]: The number of travelers.
+  ///
+  /// [category]: Category name or slug (e.g., "Heritage & History", "Any").
+  /// [days]: Desired trip duration in days.
+  /// [budget]: Per-person budget.
+  /// [travelers]: Number of travelers.
   static Future<List<TravelPackage>> generateTrip({
     required String category,
     required int days,
@@ -15,43 +15,56 @@ class ItineraryGenerator {
     required int travelers,
     List<TravelPackage>? availablePackages,
   }) async {
-    final allPackages = availablePackages ?? await TravelPackageService().getAllPackages();
-    
-    // exact matches
-    List<TravelPackage> matches = allPackages.where((package) {
-      // 1. Calculate cost
-      final totalCost = package.price * travelers;
-      
-      // 2. Parse duration (Assuming format "X Days")
-      final packageDays = int.tryParse(package.duration.split(' ')[0]) ?? 0;
-      
-      // Filter Conditions
-      final bool budgetCondition = totalCost <= budget;
-      final bool durationCondition = (packageDays - days).abs() <= 1; // +/- 1 day tolerance
-      final bool categoryCondition = category == 'Any' || 
-                                     package.location.contains(category) || 
-                                     package.name.contains(category) ||
-                                     package.description.contains(category); // Simple keyword search
+    final allPackages =
+        availablePackages ?? await TravelPackageService().getAllPackages();
 
-      return budgetCondition && durationCondition && categoryCondition;
+    // Helper: parse "X Days Y Nights" or "X Days" → int
+    int parseDays(String duration) {
+      final match = RegExp(r'(\d+)\s*[Dd]ay').firstMatch(duration);
+      return match != null ? int.parse(match.group(1)!) : 0;
+    }
+
+    // Helper: case-insensitive category check
+    bool matchesCategory(TravelPackage pkg) {
+      if (category == 'Any' || category.isEmpty) return true;
+      final q = category.toLowerCase();
+      return pkg.location.toLowerCase().contains(q) ||
+          pkg.name.toLowerCase().contains(q) ||
+          pkg.description.toLowerCase().contains(q);
+    }
+
+    // ── Pass 1: Exact match (per-person budget, +/- 1 day) ──
+    List<TravelPackage> matches = allPackages.where((pkg) {
+      final withinBudget = pkg.price <= budget;
+      final packageDays = parseDays(pkg.duration);
+      final withinDuration = (packageDays - days).abs() <= 1;
+      return withinBudget && withinDuration && matchesCategory(pkg);
     }).toList();
 
-    // Advanced Logic: If no exact matches, relax budget constraint by 20%
+    // ── Pass 2: Relax budget +25%, duration +/- 2 days ──
     if (matches.isEmpty) {
-      matches = allPackages.where((package) {
-         final totalCost = package.price * travelers;
-         final packageDays = int.tryParse(package.duration.split(' ')[0]) ?? 0;
-         
-         // Relaxed Budget (Budget + 20%)
-         final bool budgetCondition = totalCost <= (budget * 1.2);
-          // Relaxed Duration (+/- 2 days)
-         final bool durationCondition = (packageDays - days).abs() <= 2;
-         final bool categoryCondition = category == 'Any' || 
-                                     package.location.contains(category) || 
-                                     package.name.contains(category);
-
-         return budgetCondition && durationCondition && categoryCondition;
+      matches = allPackages.where((pkg) {
+        final withinBudget = pkg.price <= budget * 1.25;
+        final packageDays = parseDays(pkg.duration);
+        final withinDuration = (packageDays - days).abs() <= 2;
+        return withinBudget && withinDuration && matchesCategory(pkg);
       }).toList();
+    }
+
+    // ── Pass 3: Category-only match, sorted by price ──
+    if (matches.isEmpty) {
+      matches = allPackages.where((pkg) {
+        return pkg.price <= budget * 1.5 && matchesCategory(pkg);
+      }).toList();
+      matches.sort((a, b) => a.price.compareTo(b.price));
+      if (matches.length > 5) matches = matches.sublist(0, 5);
+    }
+
+    // ── Pass 4: Top 5 cheapest overall as ultimate fallback ──
+    if (matches.isEmpty) {
+      matches = List.from(allPackages)
+        ..sort((a, b) => a.price.compareTo(b.price));
+      if (matches.length > 5) matches = matches.sublist(0, 5);
     }
 
     return matches;
