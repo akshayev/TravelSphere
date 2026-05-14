@@ -10,6 +10,7 @@ import 'package:travelsphere/services/booking_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:travelsphere/screens/user/package_details/map_view_screen.dart';
+import 'package:travelsphere/services/notification_service.dart';
 
 class PackageDetailsScreen extends StatelessWidget {
   final TravelPackage package;
@@ -729,6 +730,14 @@ class PackageDetailsScreen extends StatelessWidget {
                                           packageName: package.name,
                                           price: package.price,
                                           travelDate: selectedDate!,
+                                          travelers: travelers,
+                                        );
+
+                                        // Fire phone notification
+                                        await NotificationService().showBookingConfirmation(
+                                          packageName: package.name,
+                                          travelDate: DateFormat('dd MMM yyyy').format(selectedDate!),
+                                          totalPrice: package.price * travelers,
                                           travelers: travelers,
                                         );
 
