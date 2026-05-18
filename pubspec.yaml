@@ -1,5 +1,5 @@
 name: travelsphere
-description: "A new Flutter project."
+description: "TravelSphere — Premium Flutter travel booking app with Firebase, real-time data, AI trip planner, and glassmorphic dark UI."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -42,4 +42,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "C:/Users/aksha/.gemini/antigravity/brain/ea5740a1-0906-40a4-9900-a1b03d8b1827/travelsphere_logo_1778745454024.png"
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 21

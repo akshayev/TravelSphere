@@ -18,15 +18,14 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code (keep launch.json and settings for dev consistency)
+# .vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
@@ -44,11 +43,36 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Secrets & Configurations
+# Secrets & Firebase Configurations — NEVER commit these
 google-services.json
 GoogleService-Info.plist
-firebase_options.dart
+lib/firebase_options.dart
 .env
+*.env.*
+
+# Graphify analysis files (dev tooling)
 graphify-out/
+.graphify_ast.json
+.graphify_cached.json
+.graphify_check_cache.py
+.graphify_detect.json
+.graphify_run_ast.py
+.graphify_uncached.txt
+
+# Scratch / temp files
 scratch/
+
+# Seed data (contains sensitive test data)
 lib/data/seed_data.dart
+
+# Temp analysis output files
+analysis_output.txt
+analysis_result.txt
+analyze_output.txt
+emul.txt
+emulators.txt
+emulators_list.txt
+comprehensive_progress_report.md.resolved
+
+# Project memory (local AI dev tool)
+PROJECT_MEMORY.md
