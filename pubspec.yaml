@@ -31,9 +31,15 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
     - assets/icons/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "C:/Users/aksha/.gemini/antigravity/brain/ea5740a1-0906-40a4-9900-a1b03d8b1827/travelsphere_logo_1778745454024.png"

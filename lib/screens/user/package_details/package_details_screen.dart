@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:travelsphere/widgets/common/smart_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travelsphere/models/package_model.dart';
 import 'package:travelsphere/app/theme.dart';
@@ -41,11 +41,13 @@ class PackageDetailsScreen extends StatelessWidget {
           Positioned.fill(
             child: Hero(
               tag: _heroTag,
-              child: CachedNetworkImage(
+              child: SmartNetworkImage(
                 imageUrl: package.imageUrl,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(color: Colors.grey[900]),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
+                errorWidget: Container(
+                  color: Colors.grey[900],
+                  child: const Center(child: Icon(Icons.broken_image, color: Colors.white24, size: 48)),
+                ),
               ),
             ),
           ),

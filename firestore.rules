@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Function to check if user is signed in
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to check if user is an admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // --- USERS ---
+    match /users/{userId} {
+      // Users can read/write their own profile
+      // Admins can read/write all profiles
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // --- PACKAGES ---
+    match /packages/{packageId} {
+      // Anyone can read packages
+      allow read: if true;
+      // Only admins can write (create, update, delete) packages
+      allow write: if isAdmin();
+    }
+
+    // --- CATEGORIES ---
+    match /categories/{categoryId} {
+      // Anyone can read categories
+      allow read: if true;
+      // Only admins can write categories
+      allow write: if isAdmin();
+    }
+
+    // --- BOOKINGS ---
+    match /bookings/{bookingId} {
+      // Users can read their own bookings. Admins can read all.
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Users can create bookings if they set themselves as the userId
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own booking (e.g., to cancel it), but Admins can update any booking
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Only admins can delete bookings
+      allow delete: if isAdmin();
+    }
+  }
+}

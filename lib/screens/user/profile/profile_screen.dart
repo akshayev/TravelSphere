@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -188,7 +189,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       radius: 50,
                       backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       backgroundImage: photoUrl != null && photoUrl.isNotEmpty
-                          ? NetworkImage(photoUrl) : null,
+                          ? (photoUrl.startsWith('data:')
+                              ? MemoryImage(base64Decode(photoUrl.split(',').last))
+                              : NetworkImage(photoUrl)) as ImageProvider
+                          : null,
                       child: photoUrl == null || photoUrl.isEmpty
                           ? const Icon(Icons.person, size: 50, color: AppTheme.primaryBlue)
                           : null,

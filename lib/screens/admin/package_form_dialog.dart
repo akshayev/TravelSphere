@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travelsphere/app/theme.dart';
@@ -29,7 +29,10 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
   late TextEditingController _locationController;
   late TextEditingController _descriptionController;
 
+  /// Holds the final image value — either a network URL or a base64 data URI.
   String? _imageUrl;
+
+  /// Holds the locally picked file for preview before saving.
   File? _selectedImageFile;
 
   LatLng? _selectedCoordinates;
@@ -106,15 +109,19 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
     super.dispose();
   }
 
-  Future<void> _pickAndUploadImage() async {
+  /// Pick an image from the phone gallery
+  Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,   // Resize to keep base64 small
+      maxHeight: 600,
+      imageQuality: 70, // Compress to ~50-100KB
+    );
 
     if (pickedFile != null) {
       setState(() {
         _selectedImageFile = File(pickedFile.path);
-        // We will just preview the image locally and upload it when saving
-        // This gives immediate visual feedback without waiting for network.
       });
     }
   }
@@ -137,34 +144,32 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
   Future<void> _savePackage() async {
     if (!_formKey.currentState!.validate()) return;
     if (_imageUrl == null && _selectedImageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please upload an image')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image')),
+      );
       return;
     }
 
     setState(() => _isSaving = true);
 
     try {
+      // Convert picked file to base64 data URI
       if (_selectedImageFile != null) {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('package_images')
-            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-        final uploadTask = storageRef.putFile(_selectedImageFile!);
-        final snapshot = await uploadTask;
-        _imageUrl = await snapshot.ref.getDownloadURL();
+        final bytes = await _selectedImageFile!.readAsBytes();
+        final base64Str = base64Encode(bytes);
+        _imageUrl = 'data:image/jpeg;base64,$base64Str';
       }
 
       final itinerary = _itineraryControllers
           .where((c) => c['title']!.text.trim().isNotEmpty && c['description']!.text.trim().isNotEmpty)
-          .map((c) => {
+          .map((c) => <String, String>{
                 'title': c['title']!.text.trim(),
                 'description': c['description']!.text.trim(),
               })
           .toList();
 
       final updatedPackage = TravelPackage(
-        id: widget.package?.id ?? '', // ID handled by service for new docs
+        id: widget.package?.id ?? '',
         name: _nameController.text.trim(),
         imageUrl: _imageUrl!,
         price: int.parse(_priceController.text),
@@ -207,8 +212,28 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
     }
   }
 
+  /// Build the image preview widget based on current state
+  ImageProvider? _getImagePreview() {
+    if (_selectedImageFile != null) {
+      return FileImage(_selectedImageFile!);
+    }
+    if (_imageUrl != null && _imageUrl!.isNotEmpty) {
+      if (_imageUrl!.startsWith('data:')) {
+        try {
+          return MemoryImage(base64Decode(_imageUrl!.split(',').last));
+        } catch (_) {
+          return null;
+        }
+      }
+      return NetworkImage(_imageUrl!);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final imagePreview = _getImagePreview();
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
@@ -231,43 +256,58 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Image Upload
-                      Center(
-                        child: GestureDetector(
-                          onTap: _pickAndUploadImage,
-                          child: Container(
-                            height: 150,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white24),
-                              image: _selectedImageFile != null
-                                  ? DecorationImage(image: FileImage(_selectedImageFile!), fit: BoxFit.cover)
-                                  : _imageUrl != null
-                                      ? DecorationImage(image: NetworkImage(_imageUrl!), fit: BoxFit.cover)
-                                      : null,
-                            ),
-                            child: _imageUrl == null && _selectedImageFile == null
-                                ? const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.add_a_photo, color: Colors.white54, size: 40),
-                                      SizedBox(height: 8),
-                                      Text('Tap to upload image', style: TextStyle(color: Colors.white54)),
-                                    ],
-                                  )
+                      // Image Picker
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          height: 160,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white24),
+                            image: imagePreview != null
+                                ? DecorationImage(image: imagePreview, fit: BoxFit.cover)
                                 : null,
                           ),
+                          child: imagePreview == null
+                              ? const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_a_photo_rounded, color: Colors.cyanAccent, size: 40),
+                                    SizedBox(height: 8),
+                                    Text('Tap to pick image from gallery',
+                                        style: TextStyle(color: Colors.white54, fontSize: 13)),
+                                  ],
+                                )
+                              : Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Container(
+                                    margin: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.edit, color: Colors.cyanAccent, size: 14),
+                                        SizedBox(width: 4),
+                                        Text('Change', style: TextStyle(color: Colors.cyanAccent, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       _buildTextField(_nameController, 'Package Name', Icons.title),
-                      _buildTextField(_priceController, 'Price (USD)', Icons.attach_money, isNumeric: true),
+                      _buildTextField(_priceController, 'Price (₹)', Icons.currency_rupee, isNumeric: true),
                       _buildTextField(_durationController, 'Duration (e.g. 5 Days)', Icons.timer),
                       _buildTextField(_descriptionController, 'Description', Icons.description, isMultiline: true),
-                      
+
                       // Location Map Picker
                       const Text('Location', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 8),
@@ -275,7 +315,10 @@ class _PackageFormDialogState extends State<PackageFormDialog> {
                       OutlinedButton.icon(
                         onPressed: _pickLocation,
                         icon: const Icon(Icons.map, color: Colors.cyanAccent),
-                        label: Text(_selectedCoordinates == null ? 'Pick on Map' : 'Location Selected! Tap to change', style: const TextStyle(color: Colors.cyanAccent)),
+                        label: Text(
+                          _selectedCoordinates == null ? 'Pick on Map' : 'Location Selected! Tap to change',
+                          style: const TextStyle(color: Colors.cyanAccent),
+                        ),
                         style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.cyanAccent)),
                       ),
                       const SizedBox(height: 16),

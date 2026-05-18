@@ -5,6 +5,7 @@ import 'package:travelsphere/models/package_model.dart';
 import 'package:travelsphere/screens/user/package_details/package_details_screen.dart';
 import 'package:travelsphere/services/travel_package_service.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
+import 'package:travelsphere/widgets/common/smart_network_image.dart';
 
 class PremiumDestinationScreen extends StatefulWidget {
   const PremiumDestinationScreen({super.key});
@@ -224,10 +225,10 @@ class _ReelPage extends StatelessWidget {
           // ── Full-screen image ──
           Hero(
             tag: 'package-hero-${package.id}',
-            child: Image.network(
-              package.imageUrl,
+            child: SmartNetworkImage(
+              imageUrl: package.imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorWidget: Container(
                 color: Colors.grey[900],
                 child: const Center(
                     child: Icon(Icons.broken_image,

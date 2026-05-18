@@ -13,15 +13,25 @@ class HelpSupportDialog extends StatelessWidget {
     final uri = Uri(
       scheme: 'mailto',
       path: 'support@travelsphere.app',
-      query: 'subject=Support%20Request%20-%20TravelSphere',
+      queryParameters: {
+        'subject': 'Support Request - TravelSphere',
+      },
     );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Could not open email client. Please email support@travelsphere.app'),
-        backgroundColor: Colors.redAccent,
-      ));
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not open email client. Please email support@travelsphere.app'),
+          backgroundColor: Colors.redAccent,
+        ));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not open email client. Please email support@travelsphere.app'),
+          backgroundColor: Colors.redAccent,
+        ));
+      }
     }
   }
 

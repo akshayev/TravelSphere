@@ -1,8 +1,7 @@
 import 'dart:io';
-import 'package:path/path.dart' as path;
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 class UserService {
@@ -16,7 +15,6 @@ class UserService {
 
   String? get currentUserId => _auth.currentUser?.uid;
   User? get firebaseUser => _auth.currentUser;
-
 
   CollectionReference get _usersRef => _firestore.collection('users');
 
@@ -106,21 +104,33 @@ class UserService {
     return _usersRef.doc(uid).snapshots();
   }
 
-  /// Upload a given profile image file to Firebase Storage
-  /// Returns the download URL if successful, or null on failure.
+  /// Upload a given profile image file as a base64 data URI.
+  /// Returns the data URI string if successful, or null on failure.
+  /// This avoids Firebase Storage rules entirely by storing the image
+  /// directly in Firestore as a compact base64 string.
   Future<String?> uploadProfileImage(File imageFile) async {
     final uid = currentUserId;
     if (uid == null) return null;
 
     try {
-      final ext = path.extension(imageFile.path);
-      // Ensure specific extension format if needed, but simple append works.
-      final ref = FirebaseStorage.instance.ref().child('profile_pics/$uid$ext');
+      final bytes = await imageFile.readAsBytes();
+      // Limit to ~500KB to stay within Firestore document size limits
+      if (bytes.lengthInBytes > 500 * 1024) {
+        if (kDebugMode) {
+          print('Image too large for Firestore storage. Max 500KB.');
+        }
+        return null;
+      }
+      final base64Str = base64Encode(bytes);
+      final dataUri = 'data:image/jpeg;base64,$base64Str';
 
-      final uploadTask = await ref.putFile(imageFile);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      // Store directly in the user document
+      await _usersRef.doc(uid).set({
+        'photoURL': dataUri,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
-      return downloadUrl;
+      return dataUri;
     } catch (e) {
       if (kDebugMode) {
         print('Error uploading profile image: $e');
@@ -143,10 +153,14 @@ class UserService {
         updates['updatedAt'] = FieldValue.serverTimestamp();
         await _usersRef.doc(uid).set(updates, SetOptions(merge: true));
       }
-      
-      // Update FirebaseAuth as well
-      if (name != null || photoUrl != null) {
-        await _auth.currentUser?.updateProfile(displayName: name, photoURL: photoUrl);
+
+      // Update FirebaseAuth as well — skip data URIs (too long for Auth API)
+      final bool isDataUri = photoUrl != null && photoUrl.startsWith('data:');
+      if (name != null || (photoUrl != null && !isDataUri)) {
+        await _auth.currentUser?.updateProfile(
+          displayName: name,
+          photoURL: isDataUri ? null : photoUrl,
+        );
       }
     } catch (e) {
       if (kDebugMode) {
@@ -155,6 +169,7 @@ class UserService {
       rethrow;
     }
   }
+
   /// Update the display name in both Firebase Auth and Firestore
   Future<void> updateDisplayName(String newName) async {
     final user = _auth.currentUser;
@@ -244,4 +259,3 @@ class UserService {
     }
   }
 }
-

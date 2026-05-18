@@ -108,9 +108,6 @@ class SecurityDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final email = FirebaseAuth.instance.currentUser?.email ?? '';
-    final emailVerified =
-        FirebaseAuth.instance.currentUser?.emailVerified ?? false;
     final hasPassword = _hasPasswordProvider();
 
     return Dialog(
@@ -139,19 +136,6 @@ class SecurityDialog extends StatelessWidget {
                     fontWeight: FontWeight.bold)),
           ]),
           const SizedBox(height: 20),
-
-          // Email verification status
-          _infoTile(
-            icon: emailVerified
-                ? Icons.verified_outlined
-                : Icons.warning_amber_outlined,
-            iconColor:
-                emailVerified ? Colors.greenAccent : Colors.orangeAccent,
-            title: 'Email Verification',
-            subtitle: emailVerified
-                ? 'Verified: $email'
-                : 'Not verified — check your inbox',
-          ),
 
           // Last sign-in
           _infoTile(

@@ -79,3 +79,4 @@ lib/
 ## 👨‍💻 Developer
 Developed with ❤️ by **Akshay EV**
 *(A showcase of innovative mobile software development and architecture.)*
+

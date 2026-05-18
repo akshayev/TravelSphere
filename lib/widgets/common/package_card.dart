@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:travelsphere/models/package_model.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
+import 'package:travelsphere/widgets/common/smart_network_image.dart';
 
 class PackageCard extends StatelessWidget {
   final TravelPackage package;
@@ -35,10 +36,10 @@ class PackageCard extends StatelessWidget {
             children: [
               // 1. Full Background Image
               Positioned.fill(
-                child: Image.network(
-                  package.imageUrl,
+                child: SmartNetworkImage(
+                  imageUrl: package.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
+                  errorWidget: Container(
                     color: Colors.grey[800],
                     child: const Center(
                         child: Icon(Icons.broken_image, color: Colors.white54)),

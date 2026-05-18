@@ -5,9 +5,8 @@ import 'package:travelsphere/models/package_model.dart';
 import 'package:travelsphere/services/travel_package_service.dart';
 import 'package:travelsphere/services/booking_service.dart';
 import 'package:travelsphere/widgets/common/glass_container.dart';
+import 'package:travelsphere/widgets/common/smart_network_image.dart';
 import 'package:travelsphere/screens/admin/package_form_dialog.dart';
-import 'package:travelsphere/data/seed_data.dart';
-
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
@@ -102,23 +101,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           ),
           const SizedBox(height: 16),
           _buildRevenueCard(),
-          const SizedBox(height: 24),
-          const Text('Seed Data', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryBlue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.dataset_outlined),
-              label: const Text('Seed Demo Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              onPressed: () => _seedDemoData(context),
-            ),
-          ),
         ],
       ),
     );
@@ -137,7 +119,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
         }
         final revenueWidget = snapshot.connectionState == ConnectionState.waiting
             ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))
-            : Text('\$$totalRevenue', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold));
+            : Text('₹$totalRevenue', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold));
         return GlassContainer(
           padding: const EdgeInsets.all(20),
           borderRadius: 16,
@@ -164,97 +146,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     );
   }
 
-Future<void> _seedDemoData(BuildContext context) async {
-  // Confirmation dialog
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E),
-      title: const Text('Reset & Seed Data', style: TextStyle(color: Colors.white)),
-      content: const Text(
-        'This will DELETE all existing packages, categories, and bookings, then seed 30 fresh India-based packages.\n\nThis cannot be undone.',
-        style: TextStyle(color: Colors.white70),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Reset & Seed', style: TextStyle(color: Colors.redAccent)),
-        ),
-      ],
-    ),
-  );
-  if (confirmed != true || !context.mounted) return;
 
-  final db = FirebaseFirestore.instance;
-
-  try {
-    // Show progress
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Clearing old data...'), duration: Duration(seconds: 2)),
-    );
-
-    // ── Delete all existing docs ──
-    for (final col in ['packages', 'categories', 'bookings']) {
-      final snap = await db.collection(col).get();
-      final batch = db.batch();
-      for (final doc in snap.docs) {
-        batch.delete(doc.reference);
-      }
-      await batch.commit();
-    }
-
-    // ── Seed categories ──
-    final cats = getSeedCategories();
-    final slugToId = <String, String>{};
-    for (final cat in cats) {
-      final docRef = await db.collection('categories').add({'name': cat['name'], 'slug': cat['slug']});
-      slugToId[cat['slug'] as String] = docRef.id;
-    }
-
-    // ── Seed packages ──
-    final pkgs = getRealisticSeedPackages();
-    for (final pkg in pkgs) {
-      final slug = pkg['categorySlug'] as String;
-      final categoryId = slugToId[slug] ?? slug;
-      final days = pkg['days'] as Map<String, String>;
-      final itinerary = days.entries.map((e) => <String, String>{
-        'title': e.key,
-        'description': e.value,
-      }).toList();
-      await db.collection('packages').add(<String, dynamic>{
-        'name': pkg['name'],
-        'imageUrl': pkg['imageUrl'],
-        'price': pkg['price'],
-        'rating': pkg['rating'],
-        'duration': pkg['duration'],
-        'location': pkg['location'],
-        'description': pkg['desc'],
-        'itinerary': itinerary,
-        'includedItems': pkg['items'],
-        'locationCoordinates': pkg['coord'],
-        'categoryId': categoryId,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    }
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Seeded: ${cats.length} categories, ${pkgs.length} packages'),
-          backgroundColor: Colors.green.shade700,
-        ),
-      );
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Seed failed: $e'), backgroundColor: Colors.red.shade700),
-      );
-    }
-  }
-}
 
   Widget _buildStatCard(String title, IconData icon, Future<String?> futureValue) {
     return GlassContainer(
@@ -316,17 +208,22 @@ Future<void> _seedDemoData(BuildContext context) async {
                       leading: Container(
                         width: 50,
                         height: 50,
-                        decoration: BoxDecoration(
+                        child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: NetworkImage(package.imageUrl),
+                          child: SmartNetworkImage(
+                            imageUrl: package.imageUrl,
                             fit: BoxFit.cover,
-                            onError: (_, __) => const Icon(Icons.broken_image, color: Colors.white24),
+                            width: 50,
+                            height: 50,
+                            errorWidget: Container(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              child: const Icon(Icons.landscape, color: Colors.white24, size: 28),
+                            ),
                           ),
                         ),
                       ),
                       title: Text(package.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      subtitle: Text('\$${package.price} • ${package.duration}', style: const TextStyle(color: Colors.white70)),
+                      subtitle: Text('₹${package.price} • ${package.duration}', style: const TextStyle(color: Colors.white70)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -419,7 +316,7 @@ Future<void> _seedDemoData(BuildContext context) async {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(pkgName, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                        Text('\$$price', style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
+                        Text('₹$price', style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -517,10 +414,34 @@ Future<void> _seedDemoData(BuildContext context) async {
                         icon: const Icon(Icons.more_vert, color: Colors.white70),
                         color: const Color(0xFF1E1E1E),
                         onSelected: (action) async {
-                          if (action == 'make_admin') {
-                            await doc.reference.update({'role': 'admin'});
-                          } else if (action == 'revoke_admin') {
-                            await doc.reference.update({'role': 'user'});
+                          try {
+                            if (action == 'make_admin') {
+                              await doc.reference.update({'role': 'admin'});
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text('${data['displayName'] ?? 'User'} is now an Admin'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                ));
+                              }
+                            } else if (action == 'revoke_admin') {
+                              await doc.reference.update({'role': 'user'});
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text('Admin access revoked for ${data['displayName'] ?? 'User'}'),
+                                  backgroundColor: Colors.orangeAccent,
+                                  behavior: SnackBarBehavior.floating,
+                                ));
+                              }
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Failed to update role: $e'),
+                                backgroundColor: Colors.redAccent,
+                                behavior: SnackBarBehavior.floating,
+                              ));
+                            }
                           }
                         },
                         itemBuilder: (context) => [
