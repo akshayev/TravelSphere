@@ -18,7 +18,7 @@
 
 </div>
 
-## 📸 App Screenshots
+## 📸 App Screenshot
 
 <div align="center">
 
